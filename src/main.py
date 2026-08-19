@@ -8,6 +8,11 @@ from .loader import (
 
 from .mapper import map_questions
 
+from .database import (
+    create_tables,
+    save_mapping
+)
+
 
 STUDENT_FILE = Path(
     "input/student1.json"
@@ -23,6 +28,12 @@ OUTPUT_FILE = Path(
 
 
 def run_mapping():
+
+    # ---------------------------------------------
+    # Create database tables
+    # ---------------------------------------------
+
+    create_tables()
 
     # ---------------------------------------------
     # Load student OCR questions
@@ -50,7 +61,19 @@ def run_mapping():
     )
 
     # ---------------------------------------------
-    # Prepare output
+    # Save mappings to database
+    # ---------------------------------------------
+
+    for question_id, mapping in mappings.items():
+
+        save_mapping(
+            student["student"],
+            question_id,
+            mapping
+        )
+
+    # ---------------------------------------------
+    # Prepare JSON output
     # ---------------------------------------------
 
     result = {
@@ -68,7 +91,7 @@ def run_mapping():
     )
 
     # ---------------------------------------------
-    # Save mapping
+    # Save JSON mapping
     # ---------------------------------------------
 
     with OUTPUT_FILE.open(
@@ -88,6 +111,11 @@ def run_mapping():
         f"{OUTPUT_FILE}"
     )
 
+    print(
+        "Mappings saved to database: "
+        "output/mapping.db"
+    )
+
 
 if __name__ == "__main__":
-    run_mapping()   
+    run_mapping()
