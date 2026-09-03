@@ -1,136 +1,142 @@
-import sqlite3
-from pathlib import Path
+from pymongo import MongoClient
+from datetime import datetime
 
 
-DATABASE_PATH = Path("output/mapping.db")
+MONGO_URI = "mongodb://localhost:27017/"
+DATABASE_NAME = "answer_evaluation"
+COLLECTION_NAME = "question_mappings"
 
 
-def get_connection():
-    """Create and return a database connection."""
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+client = MongoClient(
+    MONGO_URI,
+    serverSelectionTimeoutMS=5000
+)
 
-    return sqlite3.connect(DATABASE_PATH)
+db = client[DATABASE_NAME]
+collection = db[COLLECTION_NAME]
 
 
 def create_tables():
-    """Create the question mapping table if it does not exist."""
+    """Create unique index for student/question mappings."""
 
-    connection = get_connection()
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS question_mappings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT NOT NULL,
-            student_question TEXT NOT NULL,
-            matched_model_question TEXT,
-            similarity REAL,
-            number_match BOOLEAN,
-            threshold_used REAL,
-            status TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    connection.commit()
-    connection.close()
+    collection.create_index(
+        [("student_id", 1), ("student_question", 1)],
+        unique=True
+    )
 
 
 def save_mapping(student_id, question_id, mapping):
-    """Save one question mapping into the database."""
+    """Save or update one question mapping."""
 
-    connection = get_connection()
+    document = {
+        "student_id": student_id,
+        "student_question": question_id,
+        "matched_model_question": mapping.get(
+            "matched_model_question"
+        ),
+        "similarity": mapping.get("similarity", 0.0),
+        "number_match": mapping.get("number_match", False),
+        "threshold_used": mapping.get("threshold_used", 0.0),
+        "status": mapping.get("status"),
+        "updated_at": datetime.utcnow()
+    }
 
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        INSERT INTO question_mappings (
-            student_id,
-            student_question,
-            matched_model_question,
-            similarity,
-            number_match,
-            threshold_used,
-            status
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        student_id,
-        question_id,
-        mapping.get("matched_model_question"),
-        mapping.get("similarity", 0.0),
-        mapping.get("number_match", False),
-        mapping.get("threshold_used", 0.0),
-        mapping.get("status")
-    ))
-
-    connection.commit()
-    connection.close()
+    collection.update_one(
+        {
+            "student_id": student_id,
+            "student_question": question_id
+        },
+        {
+            "$set": document
+        },
+        upsert=True
+    )
 
 
 def get_mappings(student_id):
-    """Retrieve all mappings for a student."""
+    """Retrieve mappings for a student."""
 
-    connection = get_connection()
+    documents = collection.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).sort("student_question", 1)
 
-    cursor = connection.cursor()
+    rows = []
 
-    cursor.execute("""
-        SELECT
-            student_question,
-            matched_model_question,
-            similarity,
-            number_match,
-            threshold_used,
-            status,
-            created_at
-        FROM question_mappings
-        WHERE student_id = ?
-        ORDER BY student_question
-    """, (student_id,))
-
-    rows = cursor.fetchall()
-
-    connection.close()
+    for document in documents:
+        rows.append((
+            document.get("student_question"),
+            document.get("matched_model_question"),
+            document.get("similarity"),
+            document.get("number_match"),
+            document.get("threshold_used"),
+            document.get("status"),
+            document.get("updated_at")
+        ))
 
     return rows
+
+
 def get_student_mappings(student_id):
-    """Retrieve all mappings for a student as a list of dictionaries."""
+    """Retrieve mappings as dictionaries."""
 
-    connection = get_connection()
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT
-            student_question,
-            matched_model_question,
-            similarity,
-            number_match,
-            threshold_used,
-            status,
-            created_at
-        FROM question_mappings
-        WHERE student_id = ?
-        ORDER BY student_question
-    """, (student_id,))
-
-    rows = cursor.fetchall()
-
-    connection.close()
+    documents = collection.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).sort("student_question", 1)
 
     mappings = []
 
-    for row in rows:
+    for document in documents:
         mappings.append({
-            "student_question": row[0],
-            "matched_model_question": row[1],
-            "similarity": row[2],
-            "number_match": bool(row[3]),
-            "threshold": row[4],
-            "status": row[5],
-            "created_at": row[6]
+            "student_question":
+                document.get("student_question"),
+
+            "matched_model_question":
+                document.get("matched_model_question"),
+
+            "similarity":
+                document.get("similarity"),
+
+            "number_match":
+                bool(document.get("number_match")),
+
+            "threshold":
+                document.get("threshold_used"),
+
+            "status":
+                document.get("status"),
+
+            "updated_at":
+                document.get("updated_at")
         })
 
     return mappings
+
+
+def delete_student_mappings(student_id):
+    """Delete all mappings for one student."""
+
+    result = collection.delete_many(
+        {"student_id": student_id}
+    )
+
+    return result.deleted_count
+
+
+def test_connection():
+    """Test local MongoDB connection."""
+
+    try:
+        client.admin.command("ping")
+
+        print("MongoDB connection successful!")
+
+        return True
+
+    except Exception as error:
+
+        print("MongoDB connection failed!")
+        print(error)
+
+        return False

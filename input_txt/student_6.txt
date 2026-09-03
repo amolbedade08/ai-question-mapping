@@ -1,0 +1,40 @@
+ANS 10 Inheritance is an important feature of object-oriented programming (OOP) that allows a new class to acquire property (data members) and behaviour (member functions) of an existing class. This existing class is called the base (parent) class, and the new class as derived class child class. It promotes code reusability, extendibility, and reversibility. Class creation, reducing code duplication, and improving maintainability.
+
+Types of inheritance:
+
+1. Single inheritance - one derived class inherits from one base class.
+2. Multiple inheritance - one derived class inherits from two or more base classes.
+3. Multilevel inheritance - A derived class act as base for another derived class. a) Hierarchical inheritance - multiple derived class formation from single class. b) Hybrid inheritance - a combination of two or more types of inheritance.
+
+Advantages -
+
+1. Promotes code reusability
+2. Reduces code redundancy.
+3. Improves maintainability
+4. Supports software engineering.<|im_
+
+Ans ② OOP is the programming paradigm that uses objects containing data and methods to develop software. It helps in creating modular, reusable, secure and maintainable programs.
+
+Four pillars of OOP.
+
+- Encapsulation - wrapping data and methods into a single unit (class) and protecting data.
+- Abstraction - hiding implementation details and showing only essential features.
+- Inheritance - acquiring properties and methods of an existing class.
+- Polymorphism - allowing one interface or function to perform different tasks.
+
+Benefits of pillars - Reusability, Security, Flexibility and Easy maintenance.<|im_
+
+Ans:3 Polymorphism means "many forms" & allows the same function or method to perform different operations depending on the object or parameters, making programs more flexible and reusable.
+
+Types -
+
+1. Compile-time (static) polymorphism - Achieved through function overloading and operator overloading.
+2. Runtime (dynamic) polymorphism - Achieved through method overriding using virtual functions.
+
+Advantages - Flexibility, code reusability and easy maintenance.<|im_
+
+ANS: 4
+
+Q class - A class is a user-defined datatype or blueprint used to create objects. It contains data member variables and member functions (methods) that define the properties and behaviour of object. A class does not occupy memory until an object is created.
+
+Object - An object is an instance of class. It is a real-time (world) entity that occupies memory and can access the data members and functions defined in the class. Multiple objects can be created from a single class, each having its own state and behaviour.<|im_

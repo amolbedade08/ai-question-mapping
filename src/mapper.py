@@ -4,13 +4,11 @@ from .embeddings import encode_texts
 from .similarity import cosine_similarity
 
 
-# Thresholds for question mapping.
-#
-# When question numbers agree, we can accept a slightly
-# lower semantic similarity because the OCR/question number
-# provides an additional signal.
-SAME_NUMBER_THRESHOLD = 0.60
+# ---------------------------------------------------------
+# Mapping thresholds
+# ---------------------------------------------------------
 
+SAME_NUMBER_THRESHOLD = 0.60
 GENERAL_THRESHOLD = 0.70
 
 
@@ -33,10 +31,7 @@ def normalize_question_id(question_id):
     value = value.replace(":", "")
 
     if value.startswith("QUESTION"):
-        value = (
-            "Q"
-            + value[len("QUESTION"):]
-        )
+        value = "Q" + value[len("QUESTION"):]
 
     if value.isdigit():
         value = "Q" + value
@@ -48,20 +43,13 @@ def get_question_number(question_id):
     """
     Extract numeric question number.
 
-    Examples:
-        Q1 -> 1
-        Q2 -> 2
-        Q1991 -> 1991
+    Q1 -> 1
+    Q2 -> 2
     """
 
-    normalized = normalize_question_id(
-        question_id
-    )
+    normalized = normalize_question_id(question_id)
 
-    match = re.fullmatch(
-        r"Q(\d+)",
-        normalized
-    )
+    match = re.fullmatch(r"Q(\d+)", normalized)
 
     if not match:
         return None
@@ -90,27 +78,24 @@ def extract_model_text(model_data):
             ""
         )
 
-        return (
-            f"{question}. "
-            f"{model_answer}"
-        ).strip()
+        return f"{question}. {model_answer}".strip()
 
     return ""
 
 
-def map_questions(
-    student_answers,
-    model_answers
-):
+def map_questions(student_answers, model_answers):
     """
-    Map each student question to a model question.
+    Map each student question to the corresponding model question.
 
-    Mapping uses:
+    Strategy:
 
-        1. Semantic similarity
-        2. Question-number agreement
-
-    Question number alone is never sufficient.
+    1. Calculate semantic similarity against all model questions.
+    2. If the same question number exists, evaluate that candidate
+       first.
+    3. Same-number candidate must pass SAME_NUMBER_THRESHOLD.
+    4. If same-number candidate does not pass, allow a semantic
+       fallback only when GENERAL_THRESHOLD is reached.
+    5. Never force an unrelated question to match.
     """
 
     if not student_answers:
@@ -119,35 +104,27 @@ def map_questions(
     if not model_answers:
         return {}
 
-    # -------------------------------------------------
+    # ---------------------------------------------------------
     # Prepare model questions
-    # -------------------------------------------------
+    # ---------------------------------------------------------
 
-    model_ids = list(
-        model_answers.keys()
-    )
+    model_ids = list(model_answers.keys())
 
     model_texts = [
-        extract_model_text(
-            model_answers[model_id]
-        )
+        extract_model_text(model_answers[model_id])
         for model_id in model_ids
     ]
 
     # Generate model embeddings once.
-    model_embeddings = encode_texts(
-        model_texts
-    )
+    model_embeddings = encode_texts(model_texts)
 
     results = {}
 
-    # -------------------------------------------------
-    # Process every student question
-    # -------------------------------------------------
+    # ---------------------------------------------------------
+    # Process each student question
+    # ---------------------------------------------------------
 
-    for student_id, student_text in (
-        student_answers.items()
-    ):
+    for student_id, student_text in student_answers.items():
 
         if not student_text:
 
@@ -155,43 +132,38 @@ def map_questions(
                 "matched_model_question": None,
                 "best_candidate": None,
                 "similarity": 0.0,
+                "number_match": False,
+                "threshold_used": 0.0,
                 "status": "empty_answer",
                 "candidates": []
             }
 
             continue
 
-        # Student embedding.
+        # -----------------------------------------------------
+        # Student embedding
+        # -----------------------------------------------------
+
         student_embedding = encode_texts(
             [student_text]
         )[0]
 
-        student_number = get_question_number(
-            student_id
-        )
+        student_number = get_question_number(student_id)
 
         candidates = []
 
-        # -------------------------------------------------
-        # Compare against EVERY model question
-        # -------------------------------------------------
+        # -----------------------------------------------------
+        # Compare against every model question
+        # -----------------------------------------------------
 
-        for index, model_id in enumerate(
-            model_ids
-        ):
-
-            model_embedding = (
-                model_embeddings[index]
-            )
+        for index, model_id in enumerate(model_ids):
 
             score = cosine_similarity(
                 student_embedding,
-                model_embedding
+                model_embeddings[index]
             )
 
-            model_number = get_question_number(
-                model_id
-            )
+            model_number = get_question_number(model_id)
 
             number_match = (
                 student_number is not None
@@ -201,77 +173,123 @@ def map_questions(
 
             candidates.append({
                 "model_question": model_id,
-                "similarity": round(
-                    float(score),
-                    4
-                ),
+                "similarity": round(float(score), 4),
                 "number_match": number_match
             })
 
-        # -------------------------------------------------
-        # Sort by semantic similarity
-        # -------------------------------------------------
+        # -----------------------------------------------------
+        # Sort semantic candidates
+        # -----------------------------------------------------
 
         candidates.sort(
             key=lambda item: item["similarity"],
             reverse=True
         )
 
-        best = candidates[0]
+        best_semantic = candidates[0]
 
-        best_score = best["similarity"]
-        number_match = best["number_match"]
+        # -----------------------------------------------------
+        # Find same-number candidate
+        # -----------------------------------------------------
 
-        # -------------------------------------------------
-        # Determine threshold
-        # -------------------------------------------------
+        same_number_candidates = [
+            candidate
+            for candidate in candidates
+            if candidate["number_match"]
+        ]
 
-        if number_match:
+        matched_question = None
+        selected_candidate = best_semantic
+        required_threshold = GENERAL_THRESHOLD
+        status = "unmatched"
 
-            required_threshold = (
-                SAME_NUMBER_THRESHOLD
+        # -----------------------------------------------------
+        # CASE 1:
+        # Same question number exists
+        # -----------------------------------------------------
+
+        if same_number_candidates:
+
+            same_number_candidate = same_number_candidates[0]
+
+            same_number_score = (
+                same_number_candidate["similarity"]
             )
+
+            if same_number_score >= SAME_NUMBER_THRESHOLD:
+
+                matched_question = (
+                    same_number_candidate["model_question"]
+                )
+
+                selected_candidate = same_number_candidate
+
+                required_threshold = SAME_NUMBER_THRESHOLD
+
+                status = "matched"
+
+            else:
+
+                # Same number exists, but semantic evidence
+                # is too weak.
+                #
+                # Do NOT force a match.
+                matched_question = None
+
+                selected_candidate = same_number_candidate
+
+                required_threshold = SAME_NUMBER_THRESHOLD
+
+                status = "unmatched"
+
+        # -----------------------------------------------------
+        # CASE 2:
+        # No same-number model question exists
+        # -----------------------------------------------------
 
         else:
 
-            required_threshold = (
-                GENERAL_THRESHOLD
-            )
+            if (
+                best_semantic["similarity"]
+                >= GENERAL_THRESHOLD
+            ):
 
-        # -------------------------------------------------
-        # Decide mapping
-        # -------------------------------------------------
+                matched_question = (
+                    best_semantic["model_question"]
+                )
 
-        if best_score >= required_threshold:
+                selected_candidate = best_semantic
 
-            matched_question = (
-                best["model_question"]
-            )
+                required_threshold = GENERAL_THRESHOLD
 
-            status = "matched"
+                status = "matched"
 
-        else:
+            else:
 
-            matched_question = None
+                matched_question = None
 
-            status = "unmatched"
+                selected_candidate = best_semantic
 
-        # -------------------------------------------------
-        # Debug information
-        # -------------------------------------------------
+                required_threshold = GENERAL_THRESHOLD
+
+                status = "unmatched"
+
+        # -----------------------------------------------------
+        # Debug output
+        # -----------------------------------------------------
 
         print(
             f"Student {student_id} -> "
-            f"Best Model {best['model_question']} | "
-            f"similarity={best_score:.4f} | "
-            f"number_match={number_match} | "
+            f"Best Model {selected_candidate['model_question']} | "
+            f"similarity={selected_candidate['similarity']:.4f} | "
+            f"number_match={selected_candidate['number_match']} | "
             f"threshold={required_threshold:.2f} | "
             f"status={status}"
         )
 
-        # -------------------------------------------------
+        # -----------------------------------------------------
         # Save result
-        # -------------------------------------------------
+        # -----------------------------------------------------
 
         results[student_id] = {
 
@@ -279,13 +297,13 @@ def map_questions(
                 matched_question,
 
             "best_candidate":
-                best["model_question"],
+                selected_candidate["model_question"],
 
             "similarity":
-                best_score,
+                selected_candidate["similarity"],
 
             "number_match":
-                number_match,
+                selected_candidate["number_match"],
 
             "threshold_used":
                 required_threshold,
@@ -297,4 +315,4 @@ def map_questions(
                 candidates
         }
 
-    return results
+    return results  

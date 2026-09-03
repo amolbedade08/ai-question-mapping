@@ -2,19 +2,22 @@
 
 ## Overview
 
-This project maps OCR-extracted student answers to the corresponding questions in a model answer document using semantic similarity.
+This project maps OCR-extracted student answers to the corresponding questions in a model-answer document using semantic similarity.
 
-The system is focused specifically on the **question-mapping stage** of an answer-processing pipeline. It does not currently perform answer grading, marks calculation, rubric evaluation, or AI-based feedback generation.
+The system is focused specifically on the **question-mapping stage** of an automated answer-processing pipeline. It does **not** currently perform answer grading, marks calculation, rubric evaluation, or AI-based feedback generation.
 
-The system supports:
+### Current capabilities
 
 - OCR-extracted student answers
+- TXT-to-question-wise JSON conversion
 - Question-wise student JSON files
-- Model answer JSON files
 - DSA and OOP model-answer sets
-- Semantic question mapping
-- Multiple students
-- SQLite database storage
+- Automatic subject detection between DSA and OOP
+- Semantic question mapping using Sentence Transformers
+- Question-number normalization and supporting number matching
+- Similarity thresholds for matched/unmatched decisions
+- Multiple-student processing
+- Local MongoDB storage
 - Student-wise mapping retrieval
 - Automated testing
 
@@ -32,24 +35,22 @@ OCR extraction can introduce:
 
 Therefore, the system does not depend only on question numbers.
 
-Instead, it uses **semantic similarity** to compare student answer content with model-question information and identifies the most relevant model question.
+Instead, it uses **semantic similarity** to compare student answer content with model-question information and identify the most relevant model question.
 
-For example:
-
-Student answer:
+For example, a student may write:
 
 ```text
 A child class can inherit properties and methods from a parent class.
 ```
 
-Model answer:
+while the model question information may describe:
 
 ```text
 Inheritance is the OOP mechanism by which a derived class
 acquires the properties and behaviours of a base class.
 ```
 
-Although the wording is different, the system can identify both as referring to the same question.
+Although the wording is different, semantic embeddings can identify that both refer to inheritance.
 
 ---
 
@@ -59,31 +60,41 @@ Although the wording is different, the system can identify both as referring to 
 Student OCR Text
        |
        v
-Question Segmentation
+TXT-to-JSON Conversion
        |
        v
-Student JSON
+Question-wise Student JSON
        |
        v
-Model Answer Selection
+Subject Detection
        |
-       v
-Text Preprocessing
-       |
-       v
-Sentence Embeddings
-       |
-       v
-Semantic Similarity
-       |
-       v
-Question Mapping
-       |
-       v
-SQLite Database
-       |
-       v
-Student-wise Retrieval
+       +--------------------+
+       |                    |
+       v                    v
+      DSA                  OOP
+       |                    |
+       +---------+----------+
+                 |
+                 v
+        Text Preprocessing
+                 |
+                 v
+        Sentence Embeddings
+                 |
+                 v
+        Semantic Similarity
+                 |
+                 v
+         Question Mapping
+                 |
+                 v
+       Matched / Unmatched
+                 |
+                 v
+          MongoDB Storage
+                 |
+                 v
+       Student-wise Retrieval
 ```
 
 ---
@@ -93,23 +104,22 @@ Student-wise Retrieval
 ```text
 answer-evaluation/
 │
+├── input_txt/
+│   ├── student_1.txt
+│   ├── student_2.txt
+│   └── ...
+│
 ├── input/
-│   ├── student1.json
-│   ├── student_8.json
-│   ├── student_9.json
-│   ├── student_10.json
-│   ├── student_11.json
-│   ├── student_12.json
-│   ├── student_13.json
-│   └── student_14.json
+│   ├── student_1.json
+│   ├── student_2.json
+│   └── ...
 │
 ├── model_answers/
 │   ├── model_answers.json
-│   └── dsa_model_answers.json
+│   └── oop_model_answers.json
 │
 ├── output/
-│   ├── question_mapping_student1.json
-│   └── mapping.db
+│   └── question_mapping_*.json
 │
 ├── src/
 │   ├── __init__.py
@@ -120,10 +130,9 @@ answer-evaluation/
 │   ├── mapper.py
 │   ├── preprocess.py
 │   ├── retrieve.py
-│   ├── segment_students.py
-│   ├── semantic_mapper.py
 │   ├── similarity.py
-│   └── text_segmenter.py
+│   ├── subject_detector.py
+│   └── txt_to_json.py
 │
 ├── tests/
 │   ├── test_database.py
@@ -160,7 +169,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the required dependencies:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -175,24 +184,63 @@ The project uses Python libraries including:
 ```text
 sentence-transformers
 scikit-learn
+pymongo
 pytest
 ```
 
-Sentence Transformers is used for generating semantic embeddings.
+Sentence Transformers is used to generate semantic embeddings.
 
 Cosine similarity is used to compare the generated embeddings.
+
+PyMongo is used to connect to the local MongoDB database.
+
+---
+
+# MongoDB Setup
+
+The current project uses **local MongoDB**, not MongoDB Atlas.
+
+The application connects to:
+
+```text
+mongodb://localhost:27017/
+```
+
+The database is:
+
+```text
+answer_evaluation
+```
+
+The mapping collection is:
+
+```text
+question_mappings
+```
+
+Make sure MongoDB is running before executing the main pipeline or retrieving stored mappings.
 
 ---
 
 # Student Input Format
 
-Student answers are stored in JSON format.
+OCR text files are placed inside:
 
-Example:
+```text
+input_txt/
+```
+
+The TXT files are converted into question-wise JSON files inside:
+
+```text
+input/
+```
+
+Example JSON:
 
 ```json
 {
-    "student": "student1",
+    "student": "student_1",
     "answers": {
         "Q1": "In Object Oriented Programming inheritance allows a class to acquire properties and behaviours from another class.",
         "Q2": "Object Oriented Programming is a programming paradigm based on objects that contain data and behaviour.",
@@ -208,9 +256,60 @@ The `answers` object contains the question-wise student answers.
 
 ---
 
+# TXT-to-JSON Segmentation
+
+The project includes a TXT parser that converts OCR text into question-wise JSON.
+
+Run:
+
+```powershell
+python -m src.txt_to_json
+```
+
+The parser supports common OCR question formats such as:
+
+```text
+Q1
+Q 1
+Q.1
+Question 1
+ANS 10
+ANS: 10
+Ans ①
+Ans ②
+1.
+2.
+3.
+4.
+1)
+2)
+1→
+2→
+1->
+2->
+```
+
+The parser also handles question markers that appear on the same line as the beginning of the answer.
+
+The segmentation logic is designed to avoid incorrectly treating numbered points inside an answer as new questions.
+
+---
+
 # Model Answer Format
 
-The model-answer file contains the question and its reference answer.
+Model answers are stored as JSON files.
+
+## DSA
+
+```text
+model_answers/model_answers.json
+```
+
+## OOP
+
+```text
+model_answers/oop_model_answers.json
+```
 
 Example:
 
@@ -237,36 +336,21 @@ Example:
 
 ---
 
-# Subject-specific Model Answers
+# Subject Detection
 
-The project currently supports separate model-answer files for different subjects.
+Before question mapping, the system compares the student's answers against the DSA and OOP model-answer sets.
 
-```text
-model_answers/
-│
-├── model_answers.json
-└── dsa_model_answers.json
-```
+The detector calculates semantic scores for both subjects and selects the subject with the stronger score when the configured confidence condition is satisfied.
 
-For example:
+Possible results include:
 
 ```text
-OOP Student
-    |
-    v
-model_answers.json
+DSA
+OOP
+UNKNOWN
 ```
 
-and:
-
-```text
-DSA Student
-    |
-    v
-dsa_model_answers.json
-```
-
-This allows students from different subjects to be mapped against the appropriate model questions.
+If the subject is `UNKNOWN`, the student is not passed to the subject-specific question-mapping stage.
 
 ---
 
@@ -275,7 +359,7 @@ This allows students from different subjects to be mapped against the appropriat
 The mapping process works as follows:
 
 ```text
-Student Answers
+Student Answer
       |
       v
 Text Preprocessing
@@ -293,30 +377,34 @@ Cosine Similarity
 Best Candidate
       |
       v
+Threshold Decision
+      |
+      v
 Matched / Unmatched
 ```
 
 Each student answer is compared against the available model questions.
 
-The candidate with the highest semantic similarity is selected.
+The candidate with the highest semantic similarity is considered the best candidate.
 
 ---
 
 # Semantic Mapping
 
-The system generates embeddings for the student answer and model-question information using a Sentence Transformer model.
+The system uses a Sentence Transformer model to generate embeddings for student answers and model-question information.
 
-The embeddings are then compared using cosine similarity.
+The embeddings are compared using cosine similarity.
 
 For example:
 
 ```text
 Student Q1 -> Model Q1
 similarity = 0.8943
+number_match = true
 status = matched
 ```
 
-The system does not require the student answer and model answer to use exactly the same words.
+The system does not require the student answer and model question to use exactly the same words.
 
 Semantic similarity allows different wording to still be mapped to the same question.
 
@@ -324,9 +412,9 @@ Semantic similarity allows different wording to still be mapped to the same ques
 
 # Question Number Handling
 
-Question numbers are used as **supporting information**, but they are not the only mapping decision.
+Question numbers are used as **supporting information**, not as the only mapping decision.
 
-The system can normalize question identifiers such as:
+The system can normalize identifiers such as:
 
 ```text
 Q1
@@ -342,27 +430,29 @@ into:
 Q1
 ```
 
-This helps handle variations introduced by OCR.
+OCR-specific formats are also handled where possible.
 
-The system also compares the semantic content of answers against the available model questions.
+The semantic content is still used to determine whether the student answer corresponds to the model question.
 
 ---
 
-# Similarity Threshold
+# Similarity Thresholds
 
-The mapping uses similarity thresholds to determine whether a mapping is sufficiently strong.
-
-Current development thresholds include:
+Current development thresholds are:
 
 ```text
 Same question number:
 similarity >= 0.60
 
-Different or uncertain question number:
+General semantic fallback:
 similarity >= 0.70
 ```
 
-These are development values and should be evaluated using a larger labelled dataset before being considered production thresholds.
+The same-number threshold allows a strong semantic match to be accepted when the question number also agrees.
+
+The general threshold is used when a same-number model question is not available and semantic matching is required.
+
+These are development thresholds. They should be evaluated and calibrated using a larger labelled dataset before being considered production thresholds.
 
 ---
 
@@ -372,37 +462,15 @@ The system can produce statuses such as:
 
 ### `matched`
 
-The best candidate meets the configured similarity threshold.
+The selected model question meets the configured similarity threshold.
 
 ### `unmatched`
 
-No model question has sufficient similarity to confidently map the student answer.
+No suitable model question reaches the required similarity threshold.
 
 ### `empty_answer`
 
 The student answer is empty.
-
----
-
-# OCR Handling
-
-OCR extraction may produce incorrect or unusual question numbers.
-
-For example:
-
-```text
-Actual:
-Q1
-
-OCR:
-Q1991
-```
-
-The system does not rely exclusively on the question number.
-
-Instead, it compares the semantic content against the available model questions.
-
-This allows a potentially incorrect OCR question identifier to still be mapped based on answer content when sufficient semantic similarity exists.
 
 ---
 
@@ -412,11 +480,11 @@ The generated mapping JSON contains information such as:
 
 ```json
 {
-    "student": "student1",
+    "student": "student_1",
+    "subject": "OOP",
     "mappings": {
         "Q1": {
             "matched_model_question": "Q1",
-            "best_candidate": "Q1",
             "similarity": 0.8943,
             "number_match": true,
             "threshold_used": 0.6,
@@ -426,11 +494,10 @@ The generated mapping JSON contains information such as:
 }
 ```
 
-The mapping contains:
+The mapping information includes:
 
 - Student question
 - Matched model question
-- Best candidate
 - Similarity score
 - Question-number match information
 - Threshold used
@@ -440,112 +507,67 @@ The mapping contains:
 
 # Multiple Student Support
 
-The system supports processing multiple student JSON files.
+The system supports processing multiple student files.
 
 For example:
 
 ```text
-input/
-├── student_8.json
-├── student_9.json
-├── student_10.json
-├── student_11.json
-├── student_12.json
-├── student_13.json
-└── student_14.json
+input_txt/
+├── student_1.txt
+├── student_2.txt
+├── student_3.txt
+├── student_4.txt
+├── student_5.txt
+├── student_6.txt
+└── student_7.txt
 ```
 
-Each student's mappings are associated with their student ID.
+Each student's data is processed independently.
 
-Conceptually:
-
-```text
-student_8
-    Q1 -> Q1
-    Q2 -> Q2
-    Q3 -> Q3
-    Q4 -> Q4
-
-student_9
-    Q1 -> Q1
-    Q2 -> Q2
-    Q3 -> Q3
-    Q4 -> Q4
-```
-
----
-
-# Text Segmentation
-
-The project also contains a text-segmentation component for converting OCR text into question-wise student JSON.
-
-Supported question formats include variations such as:
-
-```text
-Q1
-Q.1
-Q 1
-Q1)
-Question 1
-```
-
-The segmentation process converts the OCR text into:
-
-```json
-{
-    "student": "student_1",
-    "answers": {
-        "Q1": "Answer text...",
-        "Q2": "Answer text...",
-        "Q3": "Answer text...",
-        "Q4": "Answer text..."
-    }
-}
-```
-
-This segmented JSON can then be passed to the question-mapping stage.
+The student ID is also stored with the mapping in MongoDB.
 
 ---
 
 # Database Storage
 
-Mapping results are stored persistently using SQLite.
+Mapping results are currently stored in **local MongoDB**.
 
-Database location:
-
-```text
-output/mapping.db
-```
-
-The database allows mappings to be stored and retrieved without rerunning the semantic mapping process.
-
-Example:
+Connection:
 
 ```text
-student1
-    |
-    ├── Q1 -> Q1
-    ├── Q2 -> Q2
-    ├── Q3 -> Q3
-    └── Q4 -> Q4
+mongodb://localhost:27017/
 ```
+
+Database:
+
+```text
+answer_evaluation
+```
+
+Collection:
+
+```text
+question_mappings
+```
+
+Mappings are associated with the student ID and student question.
+
+This allows mappings to be stored and retrieved without rerunning the semantic mapping process.
 
 ---
 
 # Database Retrieval
 
-Student mappings can be retrieved from the SQLite database.
+To retrieve mappings for a student:
 
-Example:
-
-```bash
-python -m src.retrieve student1
+```powershell
+python -m src.retrieve student_1
 ```
 
 Example output:
 
 ```text
-Mappings for student1:
+Mappings for student_1:
 
 Q1 -> Q1 | similarity=0.8943 | status=matched
 Q2 -> Q2 | similarity=0.8477 | status=matched
@@ -553,67 +575,86 @@ Q3 -> Q3 | similarity=0.8788 | status=matched
 Q4 -> Q4 | similarity=0.8582 | status=matched
 ```
 
-The retrieval functionality allows mappings to be accessed using the student ID.
+Replace the student ID with the required student.
+
+For example:
+
+```powershell
+python -m src.retrieve student_6
+```
 
 ---
 
 # Running the Project
 
-Place the student JSON files inside:
+## Step 1: Prepare OCR TXT files
+
+Place student OCR text files inside:
+
+```text
+input_txt/
+```
+
+## Step 2: Convert TXT files to JSON
+
+Run:
+
+```powershell
+python -m src.txt_to_json
+```
+
+The generated files will be placed inside:
 
 ```text
 input/
 ```
 
-Place the appropriate model-answer files inside:
+## Step 3: Start MongoDB
+
+The project expects a local MongoDB server at:
 
 ```text
-model_answers/
+mongodb://localhost:27017/
 ```
 
-Then run:
+## Step 4: Run the main pipeline
 
-```bash
+```powershell
 python -m src.main
 ```
 
-The system will process the student answers, perform semantic question mapping, and save the mapping results.
-
-The mappings are also stored in:
+The pipeline performs:
 
 ```text
-output/mapping.db
-```
-
----
-
-# Retrieving a Student's Mapping
-
-To retrieve a student's stored mappings:
-
-```bash
-python -m src.retrieve student1
-```
-
-Replace `student1` with the required student ID.
-
-For example:
-
-```bash
-python -m src.retrieve student_14
+Load student JSON
+        |
+        v
+Subject Detection
+        |
+        v
+Select DSA/OOP model
+        |
+        v
+Semantic Question Mapping
+        |
+        v
+Save Mapping to MongoDB
+        |
+        v
+Generate Mapping Output
 ```
 
 ---
 
 # Testing
 
-Run the complete test suite using:
+Run the complete test suite:
 
-```bash
+```powershell
 pytest -v
 ```
 
-The current test suite covers:
+The test suite covers areas including:
 
 - Database storage
 - Database retrieval
@@ -625,64 +666,44 @@ The current test suite covers:
 - Semantic mapping
 - Semantic similarity
 
-Current test result:
-
-```text
-10 passed
-```
-
-Example:
-
-```text
-tests/test_database.py::test_database_storage_and_retrieval PASSED
-tests/test_database_retrieval.py::test_retrieve_student_mappings PASSED
-tests/test_loader.py::test_student_loader PASSED
-tests/test_loader.py::test_model_loader PASSED
-tests/test_mapper.py::test_question_content_mismatch PASSED
-tests/test_mapper.py::test_question_correct_match PASSED
-tests/test_preprocess.py::test_normalize_text PASSED
-tests/test_preprocess.py::test_remove_ocr_noise PASSED
-tests/test_semantic_mapper.py::test_map_chunks PASSED
-tests/test_similarity.py::test_semantic_similarity PASSED
-
-10 passed
-```
-
 ---
 
 # Example Result
 
-For the OOP sample paper, the system produced:
+For the OOP sample data, the semantic mapper previously produced results such as:
 
 ```text
-Student Q1 -> Model Q1 | similarity=0.8943 | status=matched
+Student Q1 -> Model Q1 | similarity=0.8943 | number_match=True | threshold=0.60 | status=matched
 
-Student Q2 -> Model Q2 | similarity=0.8477 | status=matched
+Student Q2 -> Model Q2 | similarity=0.8477 | number_match=True | threshold=0.60 | status=matched
 
-Student Q3 -> Model Q3 | similarity=0.8788 | status=matched
+Student Q3 -> Model Q3 | similarity=0.8788 | number_match=True | threshold=0.60 | status=matched
 
-Student Q4 -> Model Q4 | similarity=0.8582 | status=matched
+Student Q4 -> Model Q4 | similarity=0.8582 | number_match=True | threshold=0.60 | status=matched
 ```
 
-These scores demonstrate the semantic mapping behaviour on the current sample data.
+These scores demonstrate semantic mapping behaviour on the sample data.
 
-They should not be interpreted as overall mapping accuracy. A proper accuracy measurement requires a larger labelled dataset containing known correct and incorrect mappings.
+They should not be interpreted as overall model accuracy. Proper accuracy measurement requires a larger labelled dataset containing known correct and incorrect mappings.
 
 ---
 
 # Current Scope
 
-The current project focuses on the following stages:
+The current implementation focuses on:
 
 1. Student answer loading
 2. OCR text preprocessing
-3. Question-wise segmentation
-4. Semantic embedding generation
-5. Question-to-question semantic mapping
-6. Similarity calculation
-7. Mapping status determination
-8. SQLite database storage
-9. Student-wise mapping retrieval
+3. TXT-to-JSON conversion
+4. Question-wise segmentation
+5. Subject detection
+6. Semantic embedding generation
+7. Question-to-question semantic mapping
+8. Cosine similarity calculation
+9. Similarity threshold decisions
+10. MongoDB database storage
+11. Student-wise mapping retrieval
+12. Automated testing
 
 The project currently does **not** perform:
 
@@ -705,6 +726,9 @@ OCR Extraction
 Answer Segmentation
       |
       v
+Subject Detection
+      |
+      v
 Question Mapping
       |
       v
@@ -724,7 +748,6 @@ Possible future improvements include:
 
 - Improved OCR handling
 - More robust question segmentation
-- Automatic subject detection
 - Larger DSA and OOP datasets
 - Mapping accuracy evaluation
 - Better threshold calibration
@@ -749,20 +772,24 @@ Possible future improvements include:
 
 # Project Status
 
-The current implementation successfully supports:
+The current implementation supports:
 
 ```text
+OCR TXT Input
+      +
+Question-wise JSON Conversion
+      +
+DSA / OOP Subject Detection
+      +
 Semantic Question Mapping
-        +
-Multiple Student Data
-        +
-DSA / OOP Model Answers
-        +
-SQLite Storage
-        +
+      +
+Multiple Students
+      +
+MongoDB Storage
+      +
 Student-wise Retrieval
-        +
+      +
 Automated Testing
 ```
 
-The current focus remains on **reliable question mapping**, which will serve as the foundation for the future answer-evaluation stages.
+The current development focus is **reliable question mapping**. This component is intended to serve as the foundation for the future answer-evaluation stages.

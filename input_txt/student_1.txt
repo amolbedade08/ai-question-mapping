@@ -1,0 +1,42 @@
+Q1 A data structure is a specialized way of organizing, storing and managing data in a computer memory so that it can be accessed and used efficiently. It defines how data elements are related to each other and what operations (like insertion, deletion, searching and sorting) can be performed on them. Data structures are fundamental to computer science as they enable efficient processing of large amounts of data and determine the performance of algorithm.
+
+Types of Data Structures Data structures are broadly classified into two main categories:
+
+1. Primitive Data Structures These are the basic building blocks provided directly by programming languages. They hold single values and cannot be broken down further. Example: int, float, char, boolean, string
+2. Non-Primitive Data Structures These are more complex structure built using primitive data types. They store collection data and further divided into: A. Linear Data Structures. Data element are arranged sequentially, with each element connected to its previous and next adjacent elements: Ex. Array, linked list, stack, queue B. Non-linear data structures. Data element are not arranged sequentially but form hierarchical or networked relationships. Ex. Tree, Graph, Hash Table.<|im_
+
+Q2) An algorithm is a finite sequence of well-defined, step-by-step instructions to solve a problem or perform a task.
+
+Characteristics of Good Algorithm
+
+1. Input - Zero or more clearly defined inputs.
+2. Output - At least one well-defined output.
+3. Definiteness - Each step is clear and unambiguous.
+4. Finiteness - Terminates after a finite number of steps.
+5. Effectiveness - Steps are simple and feasible to execute.
+6. Correctness - Produces the correct result for valid inputs.
+
+Q3) Complexity Analysis is a technique to evaluate how an algorithm's time and space requirements grow as the input size increases. It helps compare algorithms and choose the most efficient one.
+
+Types of Complexity Analysis:
+
+1. Time complexity - Measures the number of operations (execution time) an algorithm takes as a function of input size n. Expressed as O(1), O(n), O(n^2) etc.
+2. Space complexity - Measures the amount of memory (space) an algorithm uses as a function of input size n. Also expressed using Big O notation.<|im_
+
+(4) Array. An Array is a linear data structures that stores a fixed-size, sequential collection of elements of the same data types in contiguous (adjacent) memory locations. Each element can be accessed directly using its index, making arrays efficient for random access.
+
+Key features:
+
+- Fixed size
+- Element stored in contiguous memory
+- Fast access using index: O(1) time complexity.
+
+Linked list. A linked list is a linear data structures consisting of a sequence of nodes, where each node contains data and a reference to the next node. Unlike arrays; nodes are stored in non-contiguous memory location and are connected through pointers.
+
+Key features:
+
+- Dynamic size
+- Elements store in non-contiguous memory
+- Efficient insertion / deletion.
+- Sequential access only.
+- Each node has two parts: data field + next pointer.<|im_
