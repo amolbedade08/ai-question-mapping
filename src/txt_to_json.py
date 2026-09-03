@@ -3,13 +3,21 @@ import re
 from pathlib import Path
 
 
+# ============================================================
+# PATHS
+# ============================================================
+
 TXT_INPUT_DIR = Path("input_txt")
 JSON_OUTPUT_DIR = Path("input")
 
 
+# ============================================================
+# QUESTION NUMBER NORMALIZATION
+# ============================================================
+
 def normalize_question_number(raw_number):
     """
-    Convert OCR question numbers into Q1, Q2, Q3, ...
+    Convert a question number into Q1, Q2, Q3, ...
     """
 
     try:
@@ -19,11 +27,18 @@ def normalize_question_number(raw_number):
         return None
 
 
-def is_question_marker(line):
-    """
-    Detect question/answer boundaries commonly produced by OCR.
+# ============================================================
+# QUESTION MARKER DETECTION
+# ============================================================
 
-    Supported examples:
+def is_explicit_question_marker(line):
+    """
+    Detect strong / explicit question markers.
+
+    These are safe because they are unlikely to be
+    normal numbered points inside an answer.
+
+    Supported:
 
         Q1
         Q 1
@@ -39,33 +54,16 @@ def is_question_marker(line):
         Ans ②
         Ans ③
         Ans ④
-
-        1.
-        2.
-        3.
-        4.
-
-        1)
-        2)
-        3)
-        4)
-
-        1→
-        2→
-        3→
-        4→
-
-        1->
-        2->
-        3->
-        4->
     """
 
     line = line.strip()
 
-    # =========================================================
-    # 1. ANS 10 / ANS: 10 / ANSWER 10
-    # =========================================================
+    if not line:
+        return None
+
+    # ========================================================
+    # 1. ANS 10 / ANS:10 / ANSWER 10
+    # ========================================================
 
     match = re.match(
         r"^\s*ANS(?:WER)?\s*[:.]?\s*(\d+)\b",
@@ -74,24 +72,18 @@ def is_question_marker(line):
     )
 
     if match:
-
         number = int(match.group(1))
 
-        # OCR representation of first question.
-        #
-        # Example from student_6:
-        # ANS 10 Inheritance...
-        #
-        # This represents Q1.
+        # OCR commonly converts Q1 to ANS 10
         if number == 10:
             return "Q1"
 
         if 1 <= number <= 20:
             return normalize_question_number(number)
 
-    # =========================================================
-    # 2. OCR CIRCLED NUMBERS
-    # =========================================================
+    # ========================================================
+    # 2. CIRCLED NUMBERS
+    # ========================================================
 
     circled_numbers = {
         "①": "Q1",
@@ -108,16 +100,21 @@ def is_question_marker(line):
 
     for symbol, question_id in circled_numbers.items():
 
+        pattern = (
+            rf"^\s*ANS(?:WER)?\s*[:.]?\s*"
+            rf"{re.escape(symbol)}"
+        )
+
         if re.match(
-            rf"^\s*ANS(?:WER)?\s*[:.]?\s*{re.escape(symbol)}",
+            pattern,
             line,
             re.IGNORECASE
         ):
             return question_id
 
-    # =========================================================
-    # 3. NORMAL Q1 / Q 1 / Q.1 / QUESTION 1
-    # =========================================================
+    # ========================================================
+    # 3. Q1 / Q 1 / Q.1 / QUESTION 1
+    # ========================================================
 
     match = re.match(
         r"^\s*(?:Q|Question)\s*(?:No\.)?\s*[\.:]?\s*(\d+)\b",
@@ -126,30 +123,64 @@ def is_question_marker(line):
     )
 
     if match:
-
         return normalize_question_number(
             match.group(1)
         )
 
-    # =========================================================
-    # 4. PLAIN NUMBERED QUESTIONS
-    #
-    # Examples:
-    #
-    # 1. A data structure...
-    # 2. An algorithm...
-    # 3. Complexity analysis...
-    # 4. Array...
-    #
-    # Also:
-    #
-    # 1→ A data structure...
-    # 2→ An algorithm...
-    #
-    # Also:
-    #
-    # 1) A data structure...
-    # =========================================================
+    return None
+
+
+# ============================================================
+# PLAIN QUESTION MARKER
+# ============================================================
+
+def get_plain_question_number(line):
+    """
+    Detect plain numbered question formats.
+
+    Supported:
+
+        1. Question text
+        2. Question text
+        3) Question text
+        4→ Question text
+        (4) Question text
+
+    IMPORTANT:
+    This function is only used when the line appears
+    at a question boundary. This prevents answer lists
+    such as:
+
+        1. Input
+        2. Output
+        3. Definiteness
+
+    from becoming Q1, Q2, Q3.
+    """
+
+    line = line.strip()
+
+    # ========================================================
+    # 1. (4) Array
+    # ========================================================
+
+    match = re.match(
+        r"^\s*\((\d+)\)\s+",
+        line
+    )
+
+    if match:
+        number = int(match.group(1))
+
+        if 1 <= number <= 20:
+            return normalize_question_number(number)
+
+    # ========================================================
+    # 2. 1. Question
+    # 3. 1) Question
+    # 4. 1→ Question
+    # 5. 1-> Question
+    # ========================================================
 
     match = re.match(
         r"^\s*(\d+)\s*(?:[.)]|→|->|➜|➝|➞)\s+",
@@ -157,72 +188,132 @@ def is_question_marker(line):
     )
 
     if match:
-
         number = int(match.group(1))
 
         if 1 <= number <= 20:
-
-            return normalize_question_number(
-                number
-            )
+            return normalize_question_number(number)
 
     return None
 
 
+# ============================================================
+# QUESTION MARKER
+# ============================================================
+
+def is_question_marker(
+    line,
+    expected_question_number=None,
+    previous_line_blank=False
+):
+    """
+    Detect whether a line starts a new question.
+
+    Detection strategy:
+
+    1. Strong markers such as Q1, Q2, ANS 10 are
+       always accepted.
+
+    2. Plain numbered markers such as 1., 2., (3)
+       are accepted ONLY when:
+          - they are the expected next question number
+          - AND they appear after a blank line
+
+    This prevents numbered answer points from being
+    incorrectly treated as new questions.
+    """
+
+    line = line.strip()
+
+    if not line:
+        return None
+
+    # ========================================================
+    # EXPLICIT MARKERS
+    # ========================================================
+
+    explicit_question = is_explicit_question_marker(line)
+
+    if explicit_question:
+        return explicit_question
+
+    # ========================================================
+    # PLAIN NUMBERED QUESTION
+    # ========================================================
+
+    if not previous_line_blank:
+        return None
+
+    plain_question = get_plain_question_number(line)
+
+    if not plain_question:
+        return None
+
+    # ========================================================
+    # EXPECTED QUESTION NUMBER CHECK
+    # ========================================================
+
+    if expected_question_number is not None:
+
+        expected_id = f"Q{expected_question_number}"
+
+        if plain_question != expected_id:
+            return None
+
+    return plain_question
+
+
+# ============================================================
+# REMOVE QUESTION MARKER
+# ============================================================
+
 def remove_question_marker(line):
     """
-    Remove question marker from the beginning of a line.
+    Remove the question marker from the beginning
+    of a question line.
 
     Examples:
-
-        1. A data structure...
-        ->
-        A data structure...
-
-        1→ A data structure...
-        ->
-        A data structure...
 
         Q1 A data structure...
         ->
         A data structure...
 
+        Q2) An algorithm...
+        ->
+        An algorithm...
+
+        4. Array...
+        ->
+        Array...
+
+        (4) Array...
+        ->
+        Array...
+
         ANS 10 Inheritance...
         ->
         Inheritance...
+
+        Ans ② OOP...
+        ->
+        OOP...
     """
 
     line = line.strip()
 
-    # =========================================================
-    # Remove Q1 / Q 1 / Q.1 / Question 1
-    # =========================================================
+    # ========================================================
+    # Q1 / Q 1 / Q.1 / Question 1
+    # ========================================================
 
     line = re.sub(
-        r"^\s*(?:Q|Question)\s*(?:No\.)?\s*[\.:]?\s*\d+\s*",
+        r"^\s*(?:Q|Question)\s*(?:No\.)?\s*[\.:]?\s*\d+\s*[\):.]?\s*",
         "",
         line,
         flags=re.IGNORECASE
     )
 
-    # =========================================================
-    # Remove numbered marker
-    #
-    # 1.
-    # 1)
-    # 1→
-    # 1->
-    # =========================================================
-
-    line = re.sub(
-        r"^\s*\d+\s*(?:[.)]|→|->|➜|➝|➞)\s*",
-        "",
-        line
-    )
-
-    # =========================================================
-    # Remove ANS 10 / ANS: 10 / ANSWER 10
-    # =========================================================
+    # ========================================================
+    # ANS 10 / ANS:10 / ANSWER 10
+    # ========================================================
 
     line = re.sub(
         r"^\s*ANS(?:WER)?\s*[:.]?\s*\d+\s*",
@@ -231,13 +322,9 @@ def remove_question_marker(line):
         flags=re.IGNORECASE
     )
 
-    # =========================================================
-    # Remove circled answer markers
-    #
-    # Ans ①
-    # Ans ②
-    # Ans ③
-    # =========================================================
+    # ========================================================
+    # ANS ① / ANS ② / ...
+    # ========================================================
 
     line = re.sub(
         r"^\s*ANS(?:WER)?\s*[:.]?\s*[①②③④⑤⑥⑦⑧⑨⑩]\s*",
@@ -246,8 +333,32 @@ def remove_question_marker(line):
         flags=re.IGNORECASE
     )
 
+    # ========================================================
+    # (1) / (2) / (3) / (4)
+    # ========================================================
+
+    line = re.sub(
+        r"^\s*\(\d+\)\s*",
+        "",
+        line
+    )
+
+    # ========================================================
+    # 1. / 1) / 1→ / 1-> / etc.
+    # ========================================================
+
+    line = re.sub(
+        r"^\s*\d+\s*(?:[.)]|→|->|➜|➝|➞)\s*",
+        "",
+        line
+    )
+
     return line.strip()
 
+
+# ============================================================
+# OCR TEXT CLEANING
+# ============================================================
 
 def clean_answer_text(text):
     """
@@ -255,27 +366,27 @@ def clean_answer_text(text):
     the actual meaning of the student's answer.
     """
 
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
     # Remove OCR special token
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
 
     text = text.replace(
         "<|im_",
         ""
     )
 
-    # ---------------------------------------------------------
-    # Replace tabs with spaces
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Replace tabs
+    # --------------------------------------------------------
 
     text = text.replace(
         "\t",
         " "
     )
 
-    # ---------------------------------------------------------
-    # Normalize multiple spaces
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Normalize spaces
+    # --------------------------------------------------------
 
     text = re.sub(
         r"[ ]+",
@@ -283,9 +394,19 @@ def clean_answer_text(text):
         text
     )
 
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
+    # Remove spaces before punctuation
+    # --------------------------------------------------------
+
+    text = re.sub(
+        r"\s+([,.;:])",
+        r"\1",
+        text
+    )
+
+    # --------------------------------------------------------
     # Normalize excessive blank lines
-    # ---------------------------------------------------------
+    # --------------------------------------------------------
 
     text = re.sub(
         r"\n\s*\n+",
@@ -296,14 +417,21 @@ def clean_answer_text(text):
     return text.strip()
 
 
-def convert_txt_to_json(txt_path, output_dir):
+# ============================================================
+# CONVERT ONE TXT FILE
+# ============================================================
+
+def convert_txt_to_json(
+    txt_path,
+    output_dir
+):
     """
     Convert one OCR TXT file into question-wise JSON.
     """
 
-    # =========================================================
-    # Read TXT
-    # =========================================================
+    # ========================================================
+    # READ TXT
+    # ========================================================
 
     text = txt_path.read_text(
         encoding="utf-8",
@@ -312,32 +440,50 @@ def convert_txt_to_json(txt_path, output_dir):
 
     lines = text.splitlines()
 
-    # =========================================================
-    # Storage
-    # =========================================================
+    # ========================================================
+    # STORAGE
+    # ========================================================
 
     answers = {}
 
     current_question = None
     current_lines = []
 
-    # =========================================================
-    # Process every line
-    # =========================================================
+    # Next question we expect.
+    #
+    # Example:
+    # after Q1 -> expect Q2
+    # after Q2 -> expect Q3
+    #
+    expected_question_number = 1
+
+    previous_line_blank = True
+
+    # ========================================================
+    # PROCESS EVERY LINE
+    # ========================================================
 
     for line in lines:
 
+        stripped_line = line.strip()
+
+        # ----------------------------------------------------
+        # Determine whether this is a question marker
+        # ----------------------------------------------------
+
         question_id = is_question_marker(
-            line
+            line,
+            expected_question_number=expected_question_number,
+            previous_line_blank=previous_line_blank
         )
 
-        # -----------------------------------------------------
-        # New question found
-        # -----------------------------------------------------
+        # ----------------------------------------------------
+        # NEW QUESTION
+        # ----------------------------------------------------
 
         if question_id:
 
-            # Save previous question first.
+            # Save previous question
             if current_question is not None:
 
                 answer = clean_answer_text(
@@ -345,40 +491,51 @@ def convert_txt_to_json(txt_path, output_dir):
                 )
 
                 if answer:
-
                     answers[current_question] = answer
 
-            # Start new question.
+            # Start new question
             current_question = question_id
-
             current_lines = []
 
-            # Remove marker from current line.
+            # Remove question marker
             remaining_text = remove_question_marker(
                 line
             )
 
             if remaining_text:
-
                 current_lines.append(
                     remaining_text
                 )
 
-        # -----------------------------------------------------
-        # Normal answer line
-        # -----------------------------------------------------
+            # Update expected question number
+            try:
+                expected_question_number = (
+                    int(question_id[1:]) + 1
+                )
+
+            except (ValueError, TypeError):
+                expected_question_number = None
+
+        # ----------------------------------------------------
+        # NORMAL ANSWER LINE
+        # ----------------------------------------------------
 
         else:
 
             if current_question is not None:
+                current_lines.append(line)
 
-                current_lines.append(
-                    line
-                )
+        # ----------------------------------------------------
+        # Track blank line
+        # ----------------------------------------------------
 
-    # =========================================================
-    # Save final question
-    # =========================================================
+        previous_line_blank = (
+            stripped_line == ""
+        )
+
+    # ========================================================
+    # SAVE FINAL QUESTION
+    # ========================================================
 
     if current_question is not None:
 
@@ -387,39 +544,38 @@ def convert_txt_to_json(txt_path, output_dir):
         )
 
         if answer:
-
             answers[current_question] = answer
 
-    # =========================================================
-    # Create output JSON
-    # =========================================================
+    # ========================================================
+    # CREATE OUTPUT JSON
+    # ========================================================
 
     output_data = {
         "student": txt_path.stem,
         "answers": answers
     }
 
-    # =========================================================
-    # Make output directory
-    # =========================================================
+    # ========================================================
+    # CREATE OUTPUT DIRECTORY
+    # ========================================================
 
     output_dir.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    # =========================================================
-    # Output filename
-    # =========================================================
+    # ========================================================
+    # OUTPUT FILE
+    # ========================================================
 
     output_path = (
         output_dir /
         f"{txt_path.stem}.json"
     )
 
-    # =========================================================
-    # Write JSON
-    # =========================================================
+    # ========================================================
+    # WRITE JSON
+    # ========================================================
 
     with output_path.open(
         "w",
@@ -439,8 +595,17 @@ def convert_txt_to_json(txt_path, output_dir):
         f"{output_path.name}"
     )
 
+    print(
+        f"          Questions detected: "
+        f"{len(answers)}"
+    )
+
     return output_path
 
+
+# ============================================================
+# CONVERT ALL TXT FILES
+# ============================================================
 
 def convert_all_txt():
     """
@@ -448,18 +613,18 @@ def convert_all_txt():
     into JSON files inside input.
     """
 
-    # =========================================================
-    # Make output directory
-    # =========================================================
+    # ========================================================
+    # CREATE OUTPUT DIRECTORY
+    # ========================================================
 
     JSON_OUTPUT_DIR.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    # =========================================================
-    # Find TXT files
-    # =========================================================
+    # ========================================================
+    # FIND TXT FILES
+    # ========================================================
 
     txt_files = sorted(
         TXT_INPUT_DIR.glob("*.txt")
@@ -468,20 +633,20 @@ def convert_all_txt():
     if not txt_files:
 
         print(
-            "No TXT files found."
+            "No TXT files found in input_txt/"
         )
 
         return
 
-    # =========================================================
-    # Conversion counter
-    # =========================================================
+    # ========================================================
+    # CONVERSION COUNTER
+    # ========================================================
 
     success_count = 0
 
-    # =========================================================
-    # Convert each TXT file
-    # =========================================================
+    # ========================================================
+    # CONVERT EACH FILE
+    # ========================================================
 
     for txt_file in txt_files:
 
@@ -501,23 +666,29 @@ def convert_all_txt():
                 f"{txt_file.name}: {error}"
             )
 
-    # =========================================================
-    # Final result
-    # =========================================================
+    # ========================================================
+    # FINAL RESULT
+    # ========================================================
 
+    print()
     print(
-        f"\nConversion completed: "
+        f"Conversion completed: "
         f"{success_count}/{len(txt_files)} file(s)"
     )
 
 
+# ============================================================
+# MAIN
+# ============================================================
+
 def main():
-    """
-    Main entry point.
-    """
 
     convert_all_txt()
 
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
 
 if __name__ == "__main__":
     main()
