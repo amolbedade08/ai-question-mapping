@@ -1,12 +1,15 @@
 # AI Question Mapping Project
 
+
 ## Overview
+
 
 This project maps OCR-extracted student answers to the corresponding questions in a model-answer document using semantic similarity.
 
-The system is focused specifically on the **question-mapping stage** of an automated answer-processing pipeline. It does **not** currently perform answer grading, marks calculation, rubric evaluation, or AI-based feedback generation.
+The system is focused specifically on the **question-mapping stage** of an automated answer-processing pipeline. It does **not** currently perform answer grading, marks calculation, rubric evaluation, or AI-based feedback generation.
 
 ### Current capabilities
+
 
 - OCR-extracted student answers
 - TXT-to-question-wise JSON conversion
@@ -19,11 +22,15 @@ The system is focused specifically on the **question-mapping stage** of an autom
 - Multiple-student processing
 - Local MongoDB storage
 - Student-wise mapping retrieval
+- Automatic rubric generation from model answers
+- Local Llama 3.2 model through Ollama
+- MongoDB rubric storage
 - Automated testing
 
 ---
 
 ## Purpose
+
 
 OCR extraction can introduce:
 
@@ -35,20 +42,26 @@ OCR extraction can introduce:
 
 Therefore, the system does not depend only on question numbers.
 
-Instead, it uses **semantic similarity** to compare student answer content with model-question information and identify the most relevant model question.
+Instead, it uses **semantic similarity** to compare student answer content with model-question information and identify the most relevant model question.
 
 For example, a student may write:
 
-```text
-A child class can inherit properties and methods from a parent class.
 ```
+A child class can inherit properties and methods from a parent class.
+
+```
+
+**svg**
 
 while the model question information may describe:
 
-```text
+```
 Inheritance is the OOP mechanism by which a derived class
 acquires the properties and behaviours of a base class.
+
 ```
+
+**svg**
 
 Although the wording is different, semantic embeddings can identify that both refer to inheritance.
 
@@ -56,7 +69,8 @@ Although the wording is different, semantic embeddings can identify that both re
 
 # Project Architecture
 
-```text
+
+```
 Student OCR Text
        |
        v
@@ -76,32 +90,41 @@ Subject Detection
        +---------+----------+
                  |
                  v
-        Text Preprocessing
+        Model Answer Selection
                  |
                  v
-        Sentence Embeddings
-                 |
-                 v
-        Semantic Similarity
-                 |
-                 v
-         Question Mapping
+        Semantic Question Mapping
                  |
                  v
        Matched / Unmatched
                  |
-                 v
-          MongoDB Storage
+                 +-------------------+
+                 |                   |
+                 v                   v
+          MongoDB Mapping      Model Answer
+                                    |
+                                    v
+                             Local Llama 3.2
+                                    |
+                                    v
+                           Rubric Generation
+                                    |
+                                    v
+                             MongoDB Rubrics
                  |
                  v
        Student-wise Retrieval
+
 ```
+
+**svg**
 
 ---
 
 # Project Structure
 
-```text
+
+```
 answer-evaluation/
 │
 ├── input_txt/
@@ -130,6 +153,7 @@ answer-evaluation/
 │   ├── mapper.py
 │   ├── preprocess.py
 │   ├── retrieve.py
+│   ├── rubric_generator.py
 │   ├── similarity.py
 │   ├── subject_detector.py
 │   └── txt_to_json.py
@@ -145,48 +169,67 @@ answer-evaluation/
 │
 ├── requirements.txt
 └── README.md
+
 ```
+
+**svg**
 
 ---
 
 # Installation
 
+
 Create a virtual environment:
 
-```bash
+```
 python -m venv .venv
 ```
 
+**svg**
+
 ## Windows
 
-```powershell
+
+```
 .venv\Scripts\activate
 ```
 
+**svg**
+
 ## Linux/macOS
 
-```bash
+
+```
 source .venv/bin/activate
 ```
 
+**svg**
+
 Install dependencies:
 
-```bash
+```
 pip install -r requirements.txt
 ```
+
+**svg**
 
 ---
 
 # Requirements
 
+
 The project uses Python libraries including:
 
-```text
+```
 sentence-transformers
 scikit-learn
 pymongo
+ollama
 pytest
+
 ```
+
+**svg**
 
 Sentence Transformers is used to generate semantic embeddings.
 
@@ -194,29 +237,75 @@ Cosine similarity is used to compare the generated embeddings.
 
 PyMongo is used to connect to the local MongoDB database.
 
+Ollama is used to communicate with the local Llama 3.2 model for automatic rubric generation.
+
+---
+
+
+# Local LLM Setup
+
+Rubric generation uses the local **Llama 3.2** model through Ollama. No paid API key is required.
+
+After installing Ollama, download the model:
+
+```powershell
+ollama pull llama3.2
+```
+
+Verify the model:
+
+```powershell
+ollama list
+```
+
+Optional manual test:
+
+```powershell
+ollama run llama3.2
+```
+
+The Python application uses the local Ollama service when a rubric is missing from MongoDB.
+
 ---
 
 # MongoDB Setup
 
-The current project uses **local MongoDB**, not MongoDB Atlas.
+
+The current project uses **local MongoDB**, not MongoDB Atlas.
 
 The application connects to:
 
-```text
-mongodb://localhost:27017/
 ```
+mongodb://localhost:27017/
+
+```
+
+**svg**
 
 The database is:
 
-```text
-answer_evaluation
 ```
+answer_evaluation
+
+```
+
+**svg**
 
 The mapping collection is:
 
-```text
-question_mappings
 ```
+question_mappings
+
+```
+
+The rubric collection is:
+
+```
+rubrics
+
+```
+
+**svg**
 
 Make sure MongoDB is running before executing the main pipeline or retrieving stored mappings.
 
@@ -224,21 +313,28 @@ Make sure MongoDB is running before executing the main pipeline or retrieving st
 
 # Student Input Format
 
+
 OCR text files are placed inside:
 
-```text
-input_txt/
 ```
+input_txt/
+
+```
+
+**svg**
 
 The TXT files are converted into question-wise JSON files inside:
 
-```text
-input/
 ```
+input/
+
+```
+
+**svg**
 
 Example JSON:
 
-```json
+```
 {
     "student": "student_1",
     "answers": {
@@ -250,25 +346,30 @@ Example JSON:
 }
 ```
 
-The `student` field identifies the student.
+**svg**
 
-The `answers` object contains the question-wise student answers.
+The `student` field identifies the student.
+
+The `answers` object contains the question-wise student answers.
 
 ---
 
 # TXT-to-JSON Segmentation
 
+
 The project includes a TXT parser that converts OCR text into question-wise JSON.
 
 Run:
 
-```powershell
+```
 python -m src.txt_to_json
 ```
 
+**svg**
+
 The parser supports common OCR question formats such as:
 
-```text
+```
 Q1
 Q 1
 Q.1
@@ -287,7 +388,10 @@ Ans ②
 2→
 1->
 2->
+
 ```
+
+**svg**
 
 The parser also handles question markers that appear on the same line as the beginning of the answer.
 
@@ -297,23 +401,32 @@ The segmentation logic is designed to avoid incorrectly treating numbered points
 
 # Model Answer Format
 
+
 Model answers are stored as JSON files.
 
 ## DSA
 
-```text
-model_answers/model_answers.json
+
 ```
+model_answers/model_answers.json
+
+```
+
+**svg**
 
 ## OOP
 
-```text
-model_answers/oop_model_answers.json
+
 ```
+model_answers/oop_model_answers.json
+
+```
+
+**svg**
 
 Example:
 
-```json
+```
 {
     "Q1": {
         "question": "Explain inheritance and its types.",
@@ -334,9 +447,12 @@ Example:
 }
 ```
 
+**svg**
+
 ---
 
 # Subject Detection
+
 
 Before question mapping, the system compares the student's answers against the DSA and OOP model-answer sets.
 
@@ -344,21 +460,25 @@ The detector calculates semantic scores for both subjects and selects the subjec
 
 Possible results include:
 
-```text
+```
 DSA
 OOP
 UNKNOWN
+
 ```
 
-If the subject is `UNKNOWN`, the student is not passed to the subject-specific question-mapping stage.
+**svg**
+
+If the subject is `UNKNOWN`, the student is not passed to the subject-specific question-mapping stage.
 
 ---
 
 # Question Mapping Process
 
+
 The mapping process works as follows:
 
-```text
+```
 Student Answer
       |
       v
@@ -381,7 +501,10 @@ Threshold Decision
       |
       v
 Matched / Unmatched
+
 ```
+
+**svg**
 
 Each student answer is compared against the available model questions.
 
@@ -391,18 +514,22 @@ The candidate with the highest semantic similarity is considered the best candid
 
 # Semantic Mapping
 
+
 The system uses a Sentence Transformer model to generate embeddings for student answers and model-question information.
 
 The embeddings are compared using cosine similarity.
 
 For example:
 
-```text
+```
 Student Q1 -> Model Q1
 similarity = 0.8943
 number_match = true
 status = matched
+
 ```
+
+**svg**
 
 The system does not require the student answer and model question to use exactly the same words.
 
@@ -412,23 +539,30 @@ Semantic similarity allows different wording to still be mapped to the same ques
 
 # Question Number Handling
 
-Question numbers are used as **supporting information**, not as the only mapping decision.
+
+Question numbers are used as **supporting information**, not as the only mapping decision.
 
 The system can normalize identifiers such as:
 
-```text
+```
 Q1
 Q 1
 Q.1
 Question 1
 1
+
 ```
+
+**svg**
 
 into:
 
-```text
-Q1
 ```
+Q1
+
+```
+
+**svg**
 
 OCR-specific formats are also handled where possible.
 
@@ -438,15 +572,19 @@ The semantic content is still used to determine whether the student answer corre
 
 # Similarity Thresholds
 
+
 Current development thresholds are:
 
-```text
+```
 Same question number:
 similarity >= 0.60
 
 General semantic fallback:
 similarity >= 0.70
+
 ```
+
+**svg**
 
 The same-number threshold allows a strong semantic match to be accepted when the question number also agrees.
 
@@ -458,17 +596,21 @@ These are development thresholds. They should be evaluated and calibrated using 
 
 # Mapping Status
 
+
 The system can produce statuses such as:
 
 ### `matched`
+
 
 The selected model question meets the configured similarity threshold.
 
 ### `unmatched`
 
+
 No suitable model question reaches the required similarity threshold.
 
 ### `empty_answer`
+
 
 The student answer is empty.
 
@@ -476,9 +618,10 @@ The student answer is empty.
 
 # Example Mapping Output
 
+
 The generated mapping JSON contains information such as:
 
-```json
+```
 {
     "student": "student_1",
     "subject": "OOP",
@@ -494,6 +637,8 @@ The generated mapping JSON contains information such as:
 }
 ```
 
+**svg**
+
 The mapping information includes:
 
 - Student question
@@ -505,13 +650,127 @@ The mapping information includes:
 
 ---
 
+
+# Automatic Rubric Generation
+
+The project automatically generates question-wise rubrics from the selected model answers using the local **Llama 3.2** model through Ollama.
+
+The process is:
+
+```text
+Model Answer
+     |
+     v
+Local Llama 3.2
+     |
+     v
+Evaluation Criteria
+     |
+     v
+Marks Distribution
+     |
+     v
+Validated Rubric
+     |
+     v
+MongoDB
+```
+
+Each rubric contains important evaluation criteria derived from the model answer. The current implementation uses **10 marks per question** and validates the final mark distribution in Python.
+
+Example:
+
+```json
+{
+    "question_id": "Q1",
+    "question": "Explain inheritance and its types.",
+    "criteria": [
+        {
+            "criterion": "Definition and explanation of inheritance",
+            "marks": 2
+        },
+        {
+            "criterion": "Single inheritance",
+            "marks": 2
+        },
+        {
+            "criterion": "Multiple inheritance",
+            "marks": 2
+        },
+        {
+            "criterion": "Multilevel inheritance",
+            "marks": 2
+        },
+        {
+            "criterion": "Hierarchical and Hybrid inheritance",
+            "marks": 2
+        }
+    ],
+    "total_marks": 10
+}
+```
+
+Rubrics are generated for both DSA and OOP model-answer sets.
+
+Generated JSON files:
+
+```text
+output/dsa_rubrics.json
+output/oop_rubrics.json
+```
+
+Rubrics are also stored in the MongoDB `rubrics` collection.
+
+If a rubric already exists in MongoDB, the main pipeline retrieves it instead of unnecessarily generating it again with the local LLM.
+
+---
+
+# Rubric Database Storage
+
+Rubrics are stored in:
+
+```text
+answer_evaluation.rubrics
+```
+
+Each rubric document contains:
+
+- Subject
+- Question ID
+- Question text
+- Evaluation criteria
+- Marks per criterion
+- Total marks
+
+Example document:
+
+```json
+{
+    "subject": "DSA",
+    "question_id": "Q1",
+    "question": "Explain data structures and their types.",
+    "criteria": [
+        {
+            "criterion": "Definition of data structure",
+            "marks": 2
+        }
+    ],
+    "total_marks": 10
+}
+```
+
+The `question_mappings` collection stores the question-mapping results separately.
+
+---
+
 # Multiple Student Support
+
 
 The system supports processing multiple student files.
 
 For example:
 
-```text
+```
 input_txt/
 ├── student_1.txt
 ├── student_2.txt
@@ -520,7 +779,10 @@ input_txt/
 ├── student_5.txt
 ├── student_6.txt
 └── student_7.txt
+
 ```
+
+**svg**
 
 Each student's data is processed independently.
 
@@ -530,25 +792,35 @@ The student ID is also stored with the mapping in MongoDB.
 
 # Database Storage
 
-Mapping results are currently stored in **local MongoDB**.
+
+Mapping results are currently stored in **local MongoDB**.
 
 Connection:
 
-```text
-mongodb://localhost:27017/
 ```
+mongodb://localhost:27017/
+
+```
+
+**svg**
 
 Database:
 
-```text
-answer_evaluation
 ```
+answer_evaluation
+
+```
+
+**svg**
 
 Collection:
 
-```text
-question_mappings
 ```
+question_mappings
+
+```
+
+**svg**
 
 Mappings are associated with the student ID and student question.
 
@@ -558,74 +830,116 @@ This allows mappings to be stored and retrieved without rerunning the semantic m
 
 # Database Retrieval
 
+
 To retrieve mappings for a student:
 
-```powershell
+```
 python -m src.retrieve student_1
 ```
 
+**svg**
+
 Example output:
 
-```text
+```
 Mappings for student_1:
 
 Q1 -> Q1 | similarity=0.8943 | status=matched
 Q2 -> Q2 | similarity=0.8477 | status=matched
 Q3 -> Q3 | similarity=0.8788 | status=matched
 Q4 -> Q4 | similarity=0.8582 | status=matched
+
 ```
+
+**svg**
 
 Replace the student ID with the required student.
 
 For example:
 
-```powershell
+```
 python -m src.retrieve student_6
 ```
+
+**svg**
 
 ---
 
 # Running the Project
 
+
 ## Step 1: Prepare OCR TXT files
+
 
 Place student OCR text files inside:
 
-```text
-input_txt/
 ```
+input_txt/
+
+```
+
+**svg**
 
 ## Step 2: Convert TXT files to JSON
 
+
 Run:
 
-```powershell
+```
 python -m src.txt_to_json
 ```
 
+**svg**
+
 The generated files will be placed inside:
 
-```text
-input/
 ```
+input/
+
+```
+
+**svg**
 
 ## Step 3: Start MongoDB
 
+
 The project expects a local MongoDB server at:
 
-```text
+```
 mongodb://localhost:27017/
+
 ```
 
+**svg**
+
 ## Step 4: Run the main pipeline
+
+
+Process one student:
+
+```powershell
+python -m src.main student_1
+```
+
+Process another specific student:
+
+```powershell
+python -m src.main student_6
+```
+
+Process all students:
 
 ```powershell
 python -m src.main
 ```
 
+When a specific student ID is supplied, only that student's mapping and rubric pipeline is processed. Without a student ID, all `student_*.json` files are processed.
+
+**svg**
+
 The pipeline performs:
 
-```text
+```
 Load student JSON
         |
         v
@@ -642,17 +956,23 @@ Save Mapping to MongoDB
         |
         v
 Generate Mapping Output
+
 ```
+
+**svg**
 
 ---
 
 # Testing
 
+
 Run the complete test suite:
 
-```powershell
+```
 pytest -v
 ```
+
+**svg**
 
 The test suite covers areas including:
 
@@ -670,9 +990,10 @@ The test suite covers areas including:
 
 # Example Result
 
+
 For the OOP sample data, the semantic mapper previously produced results such as:
 
-```text
+```
 Student Q1 -> Model Q1 | similarity=0.8943 | number_match=True | threshold=0.60 | status=matched
 
 Student Q2 -> Model Q2 | similarity=0.8477 | number_match=True | threshold=0.60 | status=matched
@@ -680,7 +1001,10 @@ Student Q2 -> Model Q2 | similarity=0.8477 | number_match=True | threshold=0.60 
 Student Q3 -> Model Q3 | similarity=0.8788 | number_match=True | threshold=0.60 | status=matched
 
 Student Q4 -> Model Q4 | similarity=0.8582 | number_match=True | threshold=0.60 | status=matched
+
 ```
+
+**svg**
 
 These scores demonstrate semantic mapping behaviour on the sample data.
 
@@ -689,6 +1013,7 @@ They should not be interpreted as overall model accuracy. Proper accuracy measur
 ---
 
 # Current Scope
+
 
 The current implementation focuses on:
 
@@ -705,7 +1030,7 @@ The current implementation focuses on:
 11. Student-wise mapping retrieval
 12. Automated testing
 
-The project currently does **not** perform:
+The project currently does **not** perform:
 
 - Answer grading
 - Marks calculation
@@ -717,9 +1042,10 @@ The project currently does **not** perform:
 
 # Future Scope
 
+
 The broader planned pipeline can be extended as follows:
 
-```text
+```
 OCR Extraction
       |
       v
@@ -742,7 +1068,10 @@ Marks Calculation
       |
       v
 Feedback Generation
+
 ```
+
+**svg**
 
 Possible future improvements include:
 
@@ -751,8 +1080,8 @@ Possible future improvements include:
 - Larger DSA and OOP datasets
 - Mapping accuracy evaluation
 - Better threshold calibration
-- Answer comparison after question mapping
-- Rubric-based evaluation
+- Criterion-level answer comparison after question mapping
+- Rubric-based student answer evaluation
 - Marks calculation
 - Feedback generation
 - Web/API interface
@@ -764,9 +1093,11 @@ Possible future improvements include:
 
 # Team
 
+
 - Chaitanya Kulkarni
 - Shashank Gangade
 - Amol Bedade
+
 
 ---
 
@@ -781,15 +1112,33 @@ Question-wise JSON Conversion
       +
 DSA / OOP Subject Detection
       +
+Subject-specific Model Selection
+      +
 Semantic Question Mapping
       +
 Multiple Students
       +
-MongoDB Storage
+MongoDB Mapping Storage
+      +
+Automatic Rubric Generation
+      +
+Local Llama 3.2 / Ollama
+      +
+MongoDB Rubric Storage
       +
 Student-wise Retrieval
       +
 Automated Testing
 ```
 
-The current development focus is **reliable question mapping**. This component is intended to serve as the foundation for the future answer-evaluation stages.
+The current development stage covers **reliable question mapping and automatic rubric generation**.
+
+The next stage is **rubric-based student answer evaluation**, where the mapped student answer will be compared against the generated rubric to award criterion-wise marks.
+
+---
+
+# Team
+
+- Chaitanya Kulkarni
+- Shashank Gangade
+- Amol Bedade

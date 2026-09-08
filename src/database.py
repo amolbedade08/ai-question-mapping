@@ -4,16 +4,16 @@ from datetime import datetime
 
 MONGO_URI = "mongodb://localhost:27017/"
 DATABASE_NAME = "answer_evaluation"
+
 COLLECTION_NAME = "question_mappings"
+RUBRIC_COLLECTION_NAME = "rubrics"
 
-
-client = MongoClient(
-    MONGO_URI,
-    serverSelectionTimeoutMS=5000
-)
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 
 db = client[DATABASE_NAME]
+
 collection = db[COLLECTION_NAME]
+rubric_collection = db[RUBRIC_COLLECTION_NAME]
 
 
 def create_tables():
@@ -140,3 +140,44 @@ def test_connection():
         print(error)
 
         return False
+
+def save_rubric(subject, question_id, rubric):
+    document = {
+        "subject": subject,
+        "question_id": question_id,
+        "question": rubric.get("question", ""),
+        "criteria": rubric.get("criteria", []),
+        "total_marks": rubric.get("total_marks", 0)
+    }
+
+    rubric_collection.update_one(
+        {
+            "subject": subject,
+            "question_id": question_id
+        },
+        {"$set": document},
+        upsert=True
+    )
+
+def get_rubric(subject, question_id):
+    """Retrieve one rubric from MongoDB."""
+
+    document = rubric_collection.find_one(
+        {
+            "subject": subject,
+            "question_id": question_id
+        },
+        {"_id": 0}
+    )
+
+    return document
+
+def get_subject_rubrics(subject):
+    """Retrieve all rubrics for a subject."""
+
+    documents = rubric_collection.find(
+        {"subject": subject},
+        {"_id": 0}
+    ).sort("question_id", 1)
+
+    return list(documents)
