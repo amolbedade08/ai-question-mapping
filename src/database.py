@@ -8,13 +8,83 @@ DATABASE_NAME = "answer_evaluation"
 COLLECTION_NAME = "question_mappings"
 RUBRIC_COLLECTION_NAME = "rubrics"
 
+
+
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 
 db = client[DATABASE_NAME]
 
 collection = db[COLLECTION_NAME]
 rubric_collection = db[RUBRIC_COLLECTION_NAME]
+EVALUATION_COLLECTION_NAME = "answer_evaluations"
 
+evaluation_collection = db[
+    EVALUATION_COLLECTION_NAME
+]
+def create_evaluation_indexes():
+
+    evaluation_collection.create_index(
+        [
+            ("student_id", 1),
+            ("question_id", 1)
+        ],
+        unique=True
+    )
+
+
+def save_evaluation(
+    student_id,
+    question_id,
+    evaluation
+):
+
+    document = {
+        "student_id": student_id,
+        "question_id": question_id,
+        "criteria": evaluation.get(
+            "criteria",
+            []
+        ),
+        "total_marks": evaluation.get(
+            "total_marks",
+            0
+        ),
+        "max_marks": evaluation.get(
+            "max_marks",
+            10
+        ),
+        "evaluation_status": evaluation.get(
+            "evaluation_status"
+        )
+    }
+
+    evaluation_collection.update_one(
+        {
+            "student_id": student_id,
+            "question_id": question_id
+        },
+        {
+            "$set": document
+        },
+        upsert=True
+    )
+
+
+def get_evaluations(student_id):
+
+    documents = evaluation_collection.find(
+        {
+            "student_id": student_id
+        },
+        {
+            "_id": 0
+        }
+    ).sort(
+        "question_id",
+        1
+    )
+
+    return list(documents)
 
 def create_tables():
     """Create unique index for student/question mappings."""

@@ -230,5 +230,154 @@
             "question": "Explain Array and Linked List.",
             "total_marks": 10
         }
+    },
+    "evaluation": {
+        "student_id": "student_3",
+        "evaluations": [
+            {
+                "question_id": "Q1",
+                "criteria": [
+                    {
+                        "criterion": "Definition of the concept",
+                        "marks_awarded": 2,
+                        "max_marks": 2,
+                        "reason": "The student provided a clear definition of a data structure, explaining its purpose and importance."
+                    },
+                    {
+                        "criterion": "Types of data structures",
+                        "marks_awarded": 3,
+                        "max_marks": 3,
+                        "reason": "The student correctly identified the two main types of data structures (Linear and Non-Linear) and provided examples for each."
+                    },
+                    {
+                        "criterion": "Examples of data structures",
+                        "marks_awarded": 1,
+                        "max_marks": 2,
+                        "reason": "The student provided some examples of data structures, but not all the common ones listed in the rubric."
+                    },
+                    {
+                        "criterion": "Characteristics of non-linear data structures",
+                        "marks_awarded": 1,
+                        "max_marks": 3,
+                        "reason": "The student partially explained the characteristics of non-linear data structures, but did not provide a comprehensive explanation."
+                    }
+                ],
+                "total_marks": 7,
+                "max_marks": 10,
+                "evaluation_status": "evaluated",
+                "student_question": "Q1",
+                "matched_model_question": "Q1"
+            },
+            {
+                "question_id": "Q2",
+                "criteria": [
+                    {
+                        "criterion": "Definition of the concept",
+                        "marks_awarded": 2,
+                        "max_marks": 2,
+                        "reason": "The student answer provides a clear definition of an algorithm."
+                    },
+                    {
+                        "criterion": "Characteristics of a good algorithm",
+                        "marks_awarded": 4,
+                        "max_marks": 4,
+                        "reason": "The student answer lists all the characteristics of a good algorithm, including clarity, well-defined inputs, well-defined outputs, finiteness, effectiveness, and language independence."
+                    },
+                    {
+                        "criterion": "Examples of characteristics",
+                        "marks_awarded": 0,
+                        "max_marks": 2,
+                        "reason": "The student answer does not provide specific examples of the characteristics of a good algorithm."
+                    },
+                    {
+                        "criterion": "Explanation of deterministic behaviour",
+                        "marks_awarded": 0,
+                        "max_marks": 2,
+                        "reason": "The student answer does not explain deterministic behaviour."
+                    }
+                ],
+                "total_marks": 6,
+                "max_marks": 10,
+                "evaluation_status": "evaluated",
+                "student_question": "Q2",
+                "matched_model_question": "Q2"
+            },
+            {
+                "question_id": "Q3",
+                "criteria": [
+                    {
+                        "criterion": "Definition of complexity analysis",
+                        "marks_awarded": 3,
+                        "max_marks": 3,
+                        "reason": "The student provided a clear definition of complexity analysis, which is a technique to characterize the time taken by an algorithm with respect to input size."
+                    },
+                    {
+                        "criterion": "Types of complexity analysis",
+                        "marks_awarded": 3,
+                        "max_marks": 3,
+                        "reason": "The student listed two types of complexity analysis: Time Complexity and Space Complexity, which is a good demonstration of the concept."
+                    },
+                    {
+                        "criterion": "Types of time complexity",
+                        "marks_awarded": 1,
+                        "max_marks": 2,
+                        "reason": "The student only mentioned Time Complexity, but did not provide any information about other types of time complexity."
+                    },
+                    {
+                        "criterion": "Example of space complexity",
+                        "marks_awarded": 1,
+                        "max_marks": 2,
+                        "reason": "The student did not provide any information about space complexity, only mentioned it as one of the types of complexity analysis."
+                    }
+                ],
+                "total_marks": 8,
+                "max_marks": 10,
+                "evaluation_status": "evaluated",
+                "student_question": "Q3",
+                "matched_model_question": "Q3"
+            },
+            {
+                "question_id": "Q4",
+                "criteria": [
+                    {
+                        "criterion": "Definition of Array",
+                        "marks_awarded": 1,
+                        "max_marks": 3,
+                        "reason": "The student provided a definition of an array, but it was incomplete and lacked details."
+                    },
+                    {
+                        "criterion": "Definition of Linked List",
+                        "marks_awarded": 3,
+                        "max_marks": 3,
+                        "reason": "The student provided a correct definition of a Linked List, including its key features."
+                    },
+                    {
+                        "criterion": "Key feature of Linked List",
+                        "marks_awarded": 2,
+                        "max_marks": 2,
+                        "reason": "The student highlighted the key feature of Linked List, which is efficient insertion and deletion operations."
+                    },
+                    {
+                        "criterion": "Fixed size of Array",
+                        "marks_awarded": 1,
+                        "max_marks": 1,
+                        "reason": "The student mentioned that an array has a fixed size, which is a correct characteristic."
+                    },
+                    {
+                        "criterion": "Dynamic growth of Linked List",
+                        "marks_awarded": 1,
+                        "max_marks": 1,
+                        "reason": "The student mentioned that a Linked List can dynamically grow, which is a correct characteristic."
+                    }
+                ],
+                "total_marks": 8,
+                "max_marks": 10,
+                "evaluation_status": "evaluated",
+                "student_question": "Q4",
+                "matched_model_question": "Q4"
+            }
+        ],
+        "total_marks": 29,
+        "max_marks": 40
     }
 }

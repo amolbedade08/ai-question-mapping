@@ -9,10 +9,14 @@ from .database import (
     create_tables,
     save_mapping,
     test_connection,
-    get_rubric
+    get_rubric,
+    create_evaluation_indexes,
+    save_evaluation
 )
+from .answer_evaluator import evaluate_student_answers
 from .txt_to_json import convert_all_txt
 from .rubric_generator import generate_rubric
+
 
 
 INPUT_DIR = Path("input")
@@ -227,6 +231,46 @@ def process_student(
                 rubrics[student_question] = rubric
 
         # --------------------------------------------------
+        # Rubric-Based Student Answer Evaluation
+        # --------------------------------------------------
+
+        print()
+        print("-" * 60)
+        print("RUBRIC-BASED ANSWER EVALUATION")
+        print("-" * 60)
+
+        evaluation_result = evaluate_student_answers(
+            student_id,
+            student["answers"],
+            mappings,
+            rubrics
+            )
+
+        print()
+
+        print(
+            f"[TOTAL] {student_id}: "
+            f"{evaluation_result['total_marks']}/"
+            f"{evaluation_result['max_marks']}"
+        )
+
+        # --------------------------------------------------
+        # Save Evaluation to MongoDB
+        # --------------------------------------------------
+
+        for evaluation in evaluation_result["evaluations"]:
+
+            save_evaluation(
+                student_id,
+                evaluation["question_id"],
+                evaluation
+            )
+
+        print(
+            "[DATABASE] Student evaluations saved"
+        )
+
+        # --------------------------------------------------
         # Save Output
         # --------------------------------------------------
 
@@ -236,7 +280,8 @@ def process_student(
             "subject_detection": subject_result,
             "model_file": str(model_file),
             "mappings": mappings,
-            "rubrics": rubrics
+            "rubrics": rubrics,
+            "evaluation": evaluation_result
         }
 
         OUTPUT_DIR.mkdir(
@@ -260,6 +305,32 @@ def process_student(
                 indent=4,
                 ensure_ascii=False
             )
+
+        # --------------------------------------------------
+        # Save Separate Evaluation JSON
+        # --------------------------------------------------
+
+        evaluation_file = (
+            OUTPUT_DIR /
+            f"evaluation_{student_id}.json"
+        )
+
+        with evaluation_file.open(
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                evaluation_result,
+                file,
+                indent=4,
+                ensure_ascii=False
+            )
+
+        print(
+            f"[OUTPUT] Evaluation saved to: "
+            f"{evaluation_file}"
+        )
 
         # --------------------------------------------------
         # Summary
@@ -296,7 +367,6 @@ def process_student(
 
         return False
 
-
 def find_student_file(student_id):
     """Find a specific student JSON file."""
 
@@ -312,7 +382,6 @@ def find_student_file(student_id):
     )
 
     return student_file
-
 
 def main():
 
@@ -357,6 +426,7 @@ def main():
     try:
 
         create_tables()
+        create_evaluation_indexes()
 
     except Exception as error:
 
@@ -567,7 +637,7 @@ def main():
 
     print(
         "STEP 4: SUBJECT DETECTION + "
-        "QUESTION MAPPING + RUBRIC"
+        "QUESTION MAPPING + RUBRIC + EVALUATION"
     )
 
     print(
@@ -640,6 +710,11 @@ def main():
     print(
         "Rubric collection  : "
         "rubrics"
+    )
+
+    print(
+        "Evaluation collection : "
+        "answer_evaluations"
     )
 
 
