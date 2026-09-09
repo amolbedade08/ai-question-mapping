@@ -1,0 +1,234 @@
+{
+    "student": "student_4",
+    "subject": "DSA",
+    "subject_detection": {
+        "subject": "DSA",
+        "dsa_score": 0.9286,
+        "oop_score": 0.3401
+    },
+    "model_file": "model_answers\\model_answers.json",
+    "mappings": {
+        "Q1": {
+            "matched_model_question": "Q1",
+            "best_candidate": "Q1",
+            "similarity": 0.9385,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.9385,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.6304,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.4295,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.3201,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q2": {
+            "matched_model_question": "Q2",
+            "best_candidate": "Q2",
+            "similarity": 0.9046,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.9046,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.4266,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.3022,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.2394,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q3": {
+            "matched_model_question": "Q3",
+            "best_candidate": "Q3",
+            "similarity": 0.9111,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.9111,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.4207,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.3728,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.3031,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q4": {
+            "matched_model_question": "Q4",
+            "best_candidate": "Q4",
+            "similarity": 0.9601,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.9601,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.6711,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.2757,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.2363,
+                    "number_match": false
+                }
+            ]
+        }
+    },
+    "rubrics": {
+        "Q1": {
+            "question_id": "Q1",
+            "subject": "DSA",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Types of data structures",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Examples of data structures",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Characteristics of non-linear data structures",
+                    "marks": 3
+                }
+            ],
+            "question": "Explain data structures and their types.",
+            "total_marks": 10
+        },
+        "Q2": {
+            "question_id": "Q2",
+            "subject": "DSA",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Characteristics of a good algorithm",
+                    "marks": 4
+                },
+                {
+                    "criterion": "Examples of characteristics",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Explanation of deterministic behaviour",
+                    "marks": 2
+                }
+            ],
+            "question": "Explain an algorithm and the characteristics of a good algorithm.",
+            "total_marks": 10
+        },
+        "Q3": {
+            "question_id": "Q3",
+            "subject": "DSA",
+            "criteria": [
+                {
+                    "criterion": "Definition of complexity analysis",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Types of complexity analysis",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Types of time complexity",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Example of space complexity",
+                    "marks": 2
+                }
+            ],
+            "question": "Explain complexity analysis and its types.",
+            "total_marks": 10
+        },
+        "Q4": {
+            "question_id": "Q4",
+            "subject": "DSA",
+            "criteria": [
+                {
+                    "criterion": "Definition of Array",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Definition of Linked List",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Key feature of Linked List",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Fixed size of Array",
+                    "marks": 1
+                },
+                {
+                    "criterion": "Dynamic growth of Linked List",
+                    "marks": 1
+                }
+            ],
+            "question": "Explain Array and Linked List.",
+            "total_marks": 10
+        }
+    }
+}

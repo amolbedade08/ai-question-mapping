@@ -1,0 +1,90 @@
+{
+    "Q1": {
+        "question_id": "Q1",
+        "question": "Explain inheritance and its types.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 2
+            },
+            {
+                "criterion": "Types of Inheritance",
+                "marks": 3
+            },
+            {
+                "criterion": "Examples or Features of Inheritance",
+                "marks": 5
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q2": {
+        "question_id": "Q2",
+        "question": "Explain Object Oriented Programming and its characteristics.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 2
+            },
+            {
+                "criterion": "Four pillars of OOP",
+                "marks": 3
+            },
+            {
+                "criterion": "Examples of OOP pillars",
+                "marks": 2
+            },
+            {
+                "criterion": "Explanation of Inheritance",
+                "marks": 3
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q3": {
+        "question_id": "Q3",
+        "question": "Explain polymorphism and its types.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 2
+            },
+            {
+                "criterion": "Types of Polymorphism",
+                "marks": 4
+            },
+            {
+                "criterion": "Explanation of Compile-time Polymorphism",
+                "marks": 2
+            },
+            {
+                "criterion": "Explanation of Runtime Polymorphism",
+                "marks": 2
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q4": {
+        "question_id": "Q4",
+        "question": "Explain classes and objects.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 3
+            },
+            {
+                "criterion": "Definition of the class",
+                "marks": 3
+            },
+            {
+                "criterion": "Definition of the object",
+                "marks": 2
+            },
+            {
+                "criterion": "Relationship between class and object",
+                "marks": 2
+            }
+        ],
+        "total_marks": 10
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "Q1": {
+        "question_id": "Q1",
+        "question": "Explain data structures and their types.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 2
+            },
+            {
+                "criterion": "Types of data structures",
+                "marks": 3
+            },
+            {
+                "criterion": "Examples of data structures",
+                "marks": 2
+            },
+            {
+                "criterion": "Characteristics of non-linear data structures",
+                "marks": 3
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q2": {
+        "question_id": "Q2",
+        "question": "Explain an algorithm and the characteristics of a good algorithm.",
+        "criteria": [
+            {
+                "criterion": "Definition of the concept",
+                "marks": 2
+            },
+            {
+                "criterion": "Characteristics of a good algorithm",
+                "marks": 4
+            },
+            {
+                "criterion": "Examples of characteristics",
+                "marks": 2
+            },
+            {
+                "criterion": "Explanation of deterministic behaviour",
+                "marks": 2
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q3": {
+        "question_id": "Q3",
+        "question": "Explain complexity analysis and its types.",
+        "criteria": [
+            {
+                "criterion": "Definition of complexity analysis",
+                "marks": 3
+            },
+            {
+                "criterion": "Types of complexity analysis",
+                "marks": 3
+            },
+            {
+                "criterion": "Types of time complexity",
+                "marks": 2
+            },
+            {
+                "criterion": "Example of space complexity",
+                "marks": 2
+            }
+        ],
+        "total_marks": 10
+    },
+    "Q4": {
+        "question_id": "Q4",
+        "question": "Explain Array and Linked List.",
+        "criteria": [
+            {
+                "criterion": "Definition of Array",
+                "marks": 3
+            },
+            {
+                "criterion": "Definition of Linked List",
+                "marks": 3
+            },
+            {
+                "criterion": "Key feature of Linked List",
+                "marks": 2
+            },
+            {
+                "criterion": "Fixed size of Array",
+                "marks": 1
+            },
+            {
+                "criterion": "Dynamic growth of Linked List",
+                "marks": 1
+            }
+        ],
+        "total_marks": 10
+    }
+}

@@ -1,0 +1,319 @@
+{
+    "student": "student1",
+    "question_mapping": {
+        "Q1": {
+            "model_question": "Q1",
+            "status": "matched"
+        },
+        "Q1991": {
+            "model_question": null,
+            "status": "unmatched"
+        },
+        "Q2": {
+            "model_question": "Q2",
+            "status": "matched"
+        },
+        "Q3": {
+            "model_question": "Q3",
+            "status": "matched"
+        },
+        "Q4": {
+            "model_question": "Q4",
+            "status": "matched"
+        },
+        "Q5": {
+            "model_question": null,
+            "status": "unmatched"
+        }
+    },
+    "questions": {
+        "Q1": {
+            "model_question": "Q1",
+            "student_chunks": [
+                ".",
+                "Python is a programming language that is widely used for developing software, web applications, automation scripts, artificial intelligence, machine learning, data analysis and scientific computing.",
+                "It was created by Guido van Rossum and first released in"
+            ],
+            "model_chunks": [
+                "Inheritance is the OOP mechanism by which a derived class acquires the properties and behaviours of a base class.",
+                "Types of inheritance include Single, Multiple, Multilevel, Hierarchical and Hybrid inheritance."
+            ],
+            "mappings": [
+                {
+                    "model_index": 0,
+                    "model_text": "Inheritance is the OOP mechanism by which a derived class acquires the properties and behaviours of a base class.",
+                    "matches": [
+                        {
+                            "student_index": 1,
+                            "student_text": "Python is a programming language that is widely used for developing software, web applications, automation scripts, artificial intelligence, machine learning, data analysis and scientific computing.",
+                            "similarity": 0.2155
+                        },
+                        {
+                            "student_index": 0,
+                            "student_text": ".",
+                            "similarity": -0.0087
+                        },
+                        {
+                            "student_index": 2,
+                            "student_text": "It was created by Guido van Rossum and first released in",
+                            "similarity": -0.0133
+                        }
+                    ]
+                },
+                {
+                    "model_index": 1,
+                    "model_text": "Types of inheritance include Single, Multiple, Multilevel, Hierarchical and Hybrid inheritance.",
+                    "matches": [
+                        {
+                            "student_index": 1,
+                            "student_text": "Python is a programming language that is widely used for developing software, web applications, automation scripts, artificial intelligence, machine learning, data analysis and scientific computing.",
+                            "similarity": 0.0917
+                        },
+                        {
+                            "student_index": 2,
+                            "student_text": "It was created by Guido van Rossum and first released in",
+                            "similarity": -0.0615
+                        },
+                        {
+                            "student_index": 0,
+                            "student_text": ".",
+                            "similarity": -0.0802
+                        }
+                    ]
+                }
+            ]
+        },
+        "Q1991": {
+            "status": "unmatched_question",
+            "student_chunks": [
+                "Python is an interpreted high-level language known for its simple syntax and readability.",
+                "It supports procedural, object-oriented and functional programming paradigms.",
+                "The language provides a large standard library and popular frameworks such as Django, Flask, NumPy, Pandas, TensorFlow and PyTorch.",
+                "Features like inheritance, polymorphism, abstraction and encapsulation help developers build reusable software.",
+                "Python programs can run on Windows, Linux and macOS."
+            ]
+        },
+        "Q2": {
+            "model_question": "Q2",
+            "student_chunks": [
+                ".",
+                "Data Structures and Algorithms (DSA) deals with efficient organization and processing of data.",
+                "Common data structures include Arrays, Linked Lists, Stacks, Queues, Trees, Graphs, Heaps and Hash Tables.",
+                "Algorithms are step-by-step procedures used to solve computational problems.",
+                "Searching techniques include Linear Search and Binary Search while sorting algorithms include Bubble Sort, Merge Sort, Quick Sort, Heap Sort and Insertion Sort.",
+                "Time complexity is measured using Big O notation such as O(1), O(log n), O(n), O(n log n) and O(n²).",
+                "Concepts like Recursion, Dynamic Programming, Divide and Conquer, Greedy Algorithms, BFS and DFS are widely used in competitive programming and technical interviews.",
+                "Students should compare time complexity before selecting an algorithm because an efficient solution reduces execution time and memory consumption."
+            ],
+            "model_chunks": [
+                "Object Oriented Programming is a programming paradigm based on objects that bundle data and behaviour.",
+                "Its four pillars are Encapsulation, Abstraction, Inheritance and Polymorphism."
+            ],
+            "mappings": [
+                {
+                    "model_index": 0,
+                    "model_text": "Object Oriented Programming is a programming paradigm based on objects that bundle data and behaviour.",
+                    "matches": [
+                        {
+                            "student_index": 1,
+                            "student_text": "Data Structures and Algorithms (DSA) deals with efficient organization and processing of data.",
+                            "similarity": 0.3818
+                        },
+                        {
+                            "student_index": 2,
+                            "student_text": "Common data structures include Arrays, Linked Lists, Stacks, Queues, Trees, Graphs, Heaps and Hash Tables.",
+                            "similarity": 0.3763
+                        },
+                        {
+                            "student_index": 3,
+                            "student_text": "Algorithms are step-by-step procedures used to solve computational problems.",
+                            "similarity": 0.3269
+                        }
+                    ]
+                },
+                {
+                    "model_index": 1,
+                    "model_text": "Its four pillars are Encapsulation, Abstraction, Inheritance and Polymorphism.",
+                    "matches": [
+                        {
+                            "student_index": 2,
+                            "student_text": "Common data structures include Arrays, Linked Lists, Stacks, Queues, Trees, Graphs, Heaps and Hash Tables.",
+                            "similarity": 0.3605
+                        },
+                        {
+                            "student_index": 1,
+                            "student_text": "Data Structures and Algorithms (DSA) deals with efficient organization and processing of data.",
+                            "similarity": 0.3391
+                        },
+                        {
+                            "student_index": 6,
+                            "student_text": "Concepts like Recursion, Dynamic Programming, Divide and Conquer, Greedy Algorithms, BFS and DFS are widely used in competitive programming and technical interviews.",
+                            "similarity": 0.3245
+                        }
+                    ]
+                }
+            ]
+        },
+        "Q3": {
+            "model_question": "Q3",
+            "student_chunks": [
+                ".",
+                "Processor Architecture describes the internal structure of a CPU and the way instructions are executed.",
+                "A processor contains an Arithmetic Logic Unit (ALU), Control Unit (CU), Registers, Cache Memory and Buses.",
+                "The instruction cycle consists of Fetch, Decode, Execute, Memory Access and Write Back stages.",
+                "Modern processors improve performance using pipelining, superscalar execution, branch prediction and out-of-order execution.",
+                "RISC and CISC are two major processor architectures.",
+                "ARM processors are based on RISC whereas Intel x86 processors mainly follow CISC architecture.",
+                "Multi-core processors execute multiple threads simultaneously and cache memory reduces memory access time by storing frequently used data close to the CPU."
+            ],
+            "model_chunks": [
+                "Polymorphism means many forms and allows a function, method or operator to behave differently.",
+                "Compile-time polymorphism is achieved through overloading and is resolved at compile time.",
+                "Runtime polymorphism is achieved through method overriding and is resolved at runtime."
+            ],
+            "mappings": [
+                {
+                    "model_index": 0,
+                    "model_text": "Polymorphism means many forms and allows a function, method or operator to behave differently.",
+                    "matches": [
+                        {
+                            "student_index": 1,
+                            "student_text": "Processor Architecture describes the internal structure of a CPU and the way instructions are executed.",
+                            "similarity": 0.2965
+                        },
+                        {
+                            "student_index": 7,
+                            "student_text": "Multi-core processors execute multiple threads simultaneously and cache memory reduces memory access time by storing frequently used data close to the CPU.",
+                            "similarity": 0.259
+                        },
+                        {
+                            "student_index": 5,
+                            "student_text": "RISC and CISC are two major processor architectures.",
+                            "similarity": 0.2272
+                        }
+                    ]
+                },
+                {
+                    "model_index": 1,
+                    "model_text": "Compile-time polymorphism is achieved through overloading and is resolved at compile time.",
+                    "matches": [
+                        {
+                            "student_index": 4,
+                            "student_text": "Modern processors improve performance using pipelining, superscalar execution, branch prediction and out-of-order execution.",
+                            "similarity": 0.2706
+                        },
+                        {
+                            "student_index": 5,
+                            "student_text": "RISC and CISC are two major processor architectures.",
+                            "similarity": 0.2606
+                        },
+                        {
+                            "student_index": 6,
+                            "student_text": "ARM processors are based on RISC whereas Intel x86 processors mainly follow CISC architecture.",
+                            "similarity": 0.2557
+                        }
+                    ]
+                },
+                {
+                    "model_index": 2,
+                    "model_text": "Runtime polymorphism is achieved through method overriding and is resolved at runtime.",
+                    "matches": [
+                        {
+                            "student_index": 6,
+                            "student_text": "ARM processors are based on RISC whereas Intel x86 processors mainly follow CISC architecture.",
+                            "similarity": 0.2158
+                        },
+                        {
+                            "student_index": 3,
+                            "student_text": "The instruction cycle consists of Fetch, Decode, Execute, Memory Access and Write Back stages.",
+                            "similarity": 0.2156
+                        },
+                        {
+                            "student_index": 1,
+                            "student_text": "Processor Architecture describes the internal structure of a CPU and the way instructions are executed.",
+                            "similarity": 0.2153
+                        }
+                    ]
+                }
+            ]
+        },
+        "Q4": {
+            "model_question": "Q4",
+            "student_chunks": [
+                ".",
+                "Physics is the branch of science that studies matter, energy, motion and the interactions between them.",
+                "Newton's laws of motion explain the relationship between force and acceleration while the law of gravitation describes the attraction between masses.",
+                "Work, power and energy are fundamental concepts in mechanics.",
+                "Kinetic energy depends on the motion of an object whereas potential energy depends on its position.",
+                "Electricity includes concepts such as current, voltage, resistance and Ohm's law.",
+                "Magnetism explains the behavior of magnetic fields and electromagnetic induction forms the basis of electric generators and transformers.",
+                "Light exhibits both wave and particle properties and optics includes reflection, refraction, lenses and mirrors.",
+                "Sound is a mechanical wave that requires a medium for propagation while electromagnetic waves can travel through vacuum."
+            ],
+            "model_chunks": [
+                "A class is a user-defined blueprint or template defining properties and behaviours common to its objects.",
+                "An object is a real-world instance of a class with its own actual property values."
+            ],
+            "mappings": [
+                {
+                    "model_index": 0,
+                    "model_text": "A class is a user-defined blueprint or template defining properties and behaviours common to its objects.",
+                    "matches": [
+                        {
+                            "student_index": 7,
+                            "student_text": "Light exhibits both wave and particle properties and optics includes reflection, refraction, lenses and mirrors.",
+                            "similarity": 0.3069
+                        },
+                        {
+                            "student_index": 5,
+                            "student_text": "Electricity includes concepts such as current, voltage, resistance and Ohm's law.",
+                            "similarity": 0.2743
+                        },
+                        {
+                            "student_index": 1,
+                            "student_text": "Physics is the branch of science that studies matter, energy, motion and the interactions between them.",
+                            "similarity": 0.2582
+                        }
+                    ]
+                },
+                {
+                    "model_index": 1,
+                    "model_text": "An object is a real-world instance of a class with its own actual property values.",
+                    "matches": [
+                        {
+                            "student_index": 7,
+                            "student_text": "Light exhibits both wave and particle properties and optics includes reflection, refraction, lenses and mirrors.",
+                            "similarity": 0.3621
+                        },
+                        {
+                            "student_index": 1,
+                            "student_text": "Physics is the branch of science that studies matter, energy, motion and the interactions between them.",
+                            "similarity": 0.3122
+                        },
+                        {
+                            "student_index": 5,
+                            "student_text": "Electricity includes concepts such as current, voltage, resistance and Ohm's law.",
+                            "similarity": 0.3039
+                        }
+                    ]
+                }
+            ]
+        },
+        "Q5": {
+            "status": "unmatched_question",
+            "student_chunks": [
+                ".",
+                "Chemistry is the scientific study of matter, its composition, properties and chemical reactions.",
+                "Matter exists in the form of solids, liquids and gases.",
+                "Atoms consist of protons, neutrons and electrons, and elements combine to form compounds through chemical bonding.",
+                "The periodic table classifies elements based on atomic number and electronic configuration.",
+                "Chemical reactions involve reactants converting into products while obeying the law of conservation of mass.",
+                "Acids donate hydrogen ions whereas bases accept them, and the pH scale measures acidity and alkalinity.",
+                "Organic chemistry focuses on carbon compounds including hydrocarbons, alcohols, aldehydes and carboxylic acids.",
+                "Inorganic chemistry studies metals, salts and minerals.",
+                "Concepts such as oxidation, reduction, catalysts, equilibrium, electrochemistry and polymers are important in industrial applications.",
+                "End of sample Page 12 Chapter 5 Programming Computer Organization Physics Chemistry Revision Notes Fig 3.2 Table 4.1 continued on next page OCR scan quality medium some words may overlap due to page fold."
+            ]
+        }
+    }
+}

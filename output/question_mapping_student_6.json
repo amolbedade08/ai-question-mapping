@@ -1,0 +1,226 @@
+{
+    "student": "student_6",
+    "subject": "OOP",
+    "subject_detection": {
+        "subject": "OOP",
+        "dsa_score": 0.4083,
+        "oop_score": 0.8062
+    },
+    "model_file": "model_answers\\oop_model_answers.json",
+    "mappings": {
+        "Q1": {
+            "matched_model_question": "Q1",
+            "best_candidate": "Q1",
+            "similarity": 0.7759,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.7759,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.5725,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.5071,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.4945,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q2": {
+            "matched_model_question": "Q2",
+            "best_candidate": "Q2",
+            "similarity": 0.7588,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.7588,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.5215,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.5071,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.4444,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q3": {
+            "matched_model_question": "Q3",
+            "best_candidate": "Q3",
+            "similarity": 0.8932,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.8932,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.5546,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.4721,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.388,
+                    "number_match": false
+                }
+            ]
+        },
+        "Q4": {
+            "matched_model_question": "Q4",
+            "best_candidate": "Q4",
+            "similarity": 0.7966,
+            "number_match": true,
+            "threshold_used": 0.6,
+            "status": "matched",
+            "candidates": [
+                {
+                    "model_question": "Q4",
+                    "similarity": 0.7966,
+                    "number_match": true
+                },
+                {
+                    "model_question": "Q2",
+                    "similarity": 0.5681,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q1",
+                    "similarity": 0.4582,
+                    "number_match": false
+                },
+                {
+                    "model_question": "Q3",
+                    "similarity": 0.4352,
+                    "number_match": false
+                }
+            ]
+        }
+    },
+    "rubrics": {
+        "Q1": {
+            "subject": "OOP",
+            "question_id": "Q1",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Types of Inheritance",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Examples or Features of Inheritance",
+                    "marks": 5
+                }
+            ],
+            "question": "Explain inheritance and its types.",
+            "total_marks": 10
+        },
+        "Q2": {
+            "subject": "OOP",
+            "question_id": "Q2",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Four pillars of OOP",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Examples of OOP pillars",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Explanation of Inheritance",
+                    "marks": 3
+                }
+            ],
+            "question": "Explain Object Oriented Programming and its characteristics.",
+            "total_marks": 10
+        },
+        "Q3": {
+            "subject": "OOP",
+            "question_id": "Q3",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Types of Polymorphism",
+                    "marks": 4
+                },
+                {
+                    "criterion": "Explanation of Compile-time Polymorphism",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Explanation of Runtime Polymorphism",
+                    "marks": 2
+                }
+            ],
+            "question": "Explain polymorphism and its types.",
+            "total_marks": 10
+        },
+        "Q4": {
+            "subject": "OOP",
+            "question_id": "Q4",
+            "criteria": [
+                {
+                    "criterion": "Definition of the concept",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Definition of the class",
+                    "marks": 3
+                },
+                {
+                    "criterion": "Definition of the object",
+                    "marks": 2
+                },
+                {
+                    "criterion": "Relationship between class and object",
+                    "marks": 2
+                }
+            ],
+            "question": "Explain classes and objects.",
+            "total_marks": 10
+        }
+    }
+}
